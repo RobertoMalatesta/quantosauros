@@ -106,16 +106,20 @@ int QUANTOSAUROS_API __stdcall bootstrapping(long today,
 		outCouponRates.push_back(0.0);
 
 		std::vector<quantoSauros::Period> rangePeriods;
-		rangePeriods.push_back(quantoSauros::Period(Date(Day(1), Month(5), Year(2015)), Date(Day(1), Month(5), Year(2016))));
-		rangePeriods.push_back(quantoSauros::Period(Date(Day(1), Month(5), Year(2016)), Date(Day(1), Month(5), Year(2017))));
-		rangePeriods.push_back(quantoSauros::Period(Date(Day(1), Month(5), Year(2017)), Date(Day(1), Month(5), Year(2018))));
-		rangePeriods.push_back(quantoSauros::Period(Date(Day(1), Month(5), Year(2018)), Date(Day(1), Month(5), Year(2019))));
+		rangePeriods.push_back(quantoSauros::Period(
+			Date(Day(1), Month(5), Year(2015)), Date(Day(1), Month(5), Year(2016))));
+		rangePeriods.push_back(quantoSauros::Period(
+			Date(Day(1), Month(5), Year(2016)), Date(Day(1), Month(5), Year(2017))));
+		rangePeriods.push_back(quantoSauros::Period(
+			Date(Day(1), Month(5), Year(2017)), Date(Day(1), Month(5), Year(2018))));
+		rangePeriods.push_back(quantoSauros::Period(
+			Date(Day(1), Month(5), Year(2018)), Date(Day(1), Month(5), Year(2019))));
 
 		std::vector<double> rangeUpperRates;
-		rangeUpperRates.push_back(0.04);
-		rangeUpperRates.push_back(0.05);
-		rangeUpperRates.push_back(0.06);
-		rangeUpperRates.push_back(0.06);
+		rangeUpperRates.push_back(0.032);
+		rangeUpperRates.push_back(0.032);
+		rangeUpperRates.push_back(0.032);
+		rangeUpperRates.push_back(0.032);
 
 		std::vector<double> rangeLowerRates;
 		rangeLowerRates.push_back(0.00);
@@ -134,10 +138,11 @@ int QUANTOSAUROS_API __stdcall bootstrapping(long today,
 		QuantLib::Option::Type optionType = QuantLib::Option::Type::Call;
 		int monitorFrequency = 30;
 
+		QuantLib::Date issueDate = Date(Day(1), Month(5), Year(2015));
 		QuantLib::Date maturityDate = QuantLib::Date(Day(1), Month(5), Year(2019));
 
 		quantoSauros::RangeAccrualNote raNote(notional, 
-			todayDate, maturityDate, dcf1, includePrincipal, 
+			issueDate, maturityDate, dcf1, includePrincipal, 
 			floatTenor, swapCouponFrequency1,
 			inCouponRates, outCouponRates,
 			rangePeriods, rangeUpperRates, rangeLowerRates,
@@ -145,10 +150,10 @@ int QUANTOSAUROS_API __stdcall bootstrapping(long today,
 			monitorFrequency);
 
 		Money asd = raNote.getNotional();
-		BigNatural seed = 42;
+		int seed = 100;
 		Real meanReversion = 0.01;
-		Real sigma = 0.005;
-		Date asOfDate = Date(Day(1), Month(8), Year(2017));
+		Real sigma = 0.001;
+		Date asOfDate = issueDate;// Date(Day(1), Month(8), Year(2017));
 			
 		raNote.getPrice(asOfDate, irCurve, volSurfaces, meanReversion, sigma, seed);
 		//std::vector<quantoSauros::Volatility> asdasd = volCurve.getVolatilityCurve();

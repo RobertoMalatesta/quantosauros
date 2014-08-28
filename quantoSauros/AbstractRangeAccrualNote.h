@@ -43,6 +43,9 @@ namespace quantoSauros {
 		QuantLib::Option::Type m_optionType;
 		//기타 정보
 		int m_monitorFrequency;
+
+		//seed
+		std::vector<std::vector<BigNatural>> m_seeds;
 	};
 	
 	inline QuantLib::Money AbstractRangeAccrualNote::getNotional(){

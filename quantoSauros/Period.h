@@ -9,7 +9,7 @@ namespace quantoSauros {
 		{
 			m_startDate = startDate;
 			m_endDate = endDate;
-		}
+		}		
 		QuantLib::Time getPeriodTenor(QuantLib::DayCounter dcf){
 			return dcf.yearFraction(m_startDate, m_endDate);
 		}

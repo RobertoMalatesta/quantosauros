@@ -23,7 +23,7 @@ namespace quantoSauros {
 			quantoSauros::InterestRateCurve floatCurve,
 			quantoSauros::VolatilitySurface volatilitySurface,
 			QuantLib::Real meanReversion, QuantLib::Real sigma,
-			BigNatural seed);
+			int simulationNum);
 
 		~RangeAccrualNote(void);
 	};
