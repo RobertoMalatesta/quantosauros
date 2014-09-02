@@ -16,7 +16,8 @@
 #include "Tenor.h";
 #include "InterestRate.h";
 #include "RangeAccrualNote.h";
-
+#include "pathgenerator.h";
+#include "shortratemodels.h";
 //#include "test_libormarketmodel.h";
 //#include "test_libormarketmodelprocess.h";
 //#include "test_lowdiscrepancysequence.h";
@@ -25,8 +26,8 @@
 using namespace QuantLib;
 
 int QUANTOSAUROS_API __stdcall bootstrapping(long today,
-	long spotRateN, double* spotRates, SAFEARRAY** spotRatesTenor,
-	long volMaturityN, long volTenorN, double* volSurface, 
+	long rateN, double* market_ytmRates, double* market_discountRates, SAFEARRAY** spotRatesTenor,
+	long volMaturityN, long volTenorN, double* market_volSurface, 
 	SAFEARRAY** volSurfaceMaturities, SAFEARRAY** volSurfaceTenors,
 	double* OutZeroRates, long* OutDays);
 

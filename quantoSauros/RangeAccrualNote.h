@@ -23,6 +23,9 @@ namespace quantoSauros {
 			quantoSauros::InterestRateCurve floatCurve,
 			quantoSauros::VolatilitySurface volatilitySurface,
 			QuantLib::Real meanReversion, QuantLib::Real sigma,
+			quantoSauros::InterestRateCurve discountCurve,
+			quantoSauros::VolatilitySurface discountVolatilitySurface,
+			QuantLib::Real discountMeanReversion, QuantLib::Real discountSigma,
 			int simulationNum);
 
 		~RangeAccrualNote(void);

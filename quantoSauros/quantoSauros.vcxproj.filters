@@ -102,6 +102,15 @@
     <ClInclude Include="VanillaSwap.h">
       <Filter>Header Files\Core\instruments\Swaps</Filter>
     </ClInclude>
+    <ClInclude Include="utilities.h">
+      <Filter>Header Files\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="pathgenerator.h">
+      <Filter>Header Files\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="shortratemodels.h">
+      <Filter>Header Files\Test</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="quantoSauros.def">
@@ -138,6 +147,15 @@
     </ClCompile>
     <ClCompile Include="Volatility.cpp">
       <Filter>Source Files\Commons</Filter>
+    </ClCompile>
+    <ClCompile Include="utilities.cpp">
+      <Filter>Source Files\Test</Filter>
+    </ClCompile>
+    <ClCompile Include="pathgenerator.cpp">
+      <Filter>Source Files\Test</Filter>
+    </ClCompile>
+    <ClCompile Include="shorratemodels.cpp">
+      <Filter>Source Files\Test</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

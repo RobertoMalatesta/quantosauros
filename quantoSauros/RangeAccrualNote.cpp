@@ -37,14 +37,19 @@ namespace quantoSauros {
 		quantoSauros::InterestRateCurve floatCurve,
 		quantoSauros::VolatilitySurface volatilitySurface,
 		QuantLib::Real meanReversion, QuantLib::Real sigma, 
+		quantoSauros::InterestRateCurve discountCurve,
+		quantoSauros::VolatilitySurface discountVolatilitySurface,
+		QuantLib::Real discountMeanReversion, QuantLib::Real discountSigma,
 		int simulationNum){
 
 			typedef PseudoRandom::rsg_type rsg_type;
-			typedef PathGenerator<rsg_type>::sample_type sample_type;
+			//typedef PathGenerator<rsg_type>::sample_type sample_type;
+			typedef MultiPathGenerator<rsg_type>::sample_type sample_type;
 
 			double t = m_dcf.yearFraction(today, m_maturityDate);
 
 			Handle<YieldTermStructure> floatTermStructure(floatCurve.getInterestRateCurve());
+			Handle<YieldTermStructure> discountTermStructure(discountCurve.getInterestRateCurve());
 
 			//dividing Range Periods
 			int sizeOfRangePeriod = m_rangePeriods.size();
@@ -61,10 +66,10 @@ namespace quantoSauros {
 			m_inCouponRates.erase(m_inCouponRates.begin(), m_inCouponRates.begin() + idx);
 			m_outCouponRates.erase(m_outCouponRates.begin(), m_outCouponRates.begin() + idx);
 			
-
 			QuantLib::Size timeGridSize = 10;			
 			int periodLength = m_rangePeriods.size();
 			
+			srand(time(NULL));
 			//Range 별 seed 생성
 			if (m_seeds.size() == 0){
 				for (int i = 0; i < simulationNum; i++){
@@ -76,7 +81,8 @@ namespace quantoSauros {
 				}
 			}
 			//initial 변수 선언
-			Real x0 = 0;
+			Real x0ForReference = 0;
+			Real x0ForDiscount = 0;
 			//payoff 저장 함수 선언
 			std::vector<std::vector<double>> payoffs(periodLength + 1);
 			std::vector<std::vector<double>> coupons(simulationNum);
@@ -95,44 +101,70 @@ namespace quantoSauros {
 					QuantLib::Time periodTenor = period.getPeriodTenor(m_dcf);
 
 					//1. process				
-					boost::shared_ptr<HullWhiteProcess> process(
+					std::vector<boost::shared_ptr<StochasticProcess1D>> processes(2);
+					boost::shared_ptr<StochasticProcess> process;
+					boost::shared_ptr<HullWhiteProcess> referenceProcess(
 						new HullWhiteProcess(floatTermStructure, meanReversion, sigma));
-				
+					boost::shared_ptr<HullWhiteProcess> discountProcess(
+						new HullWhiteProcess(discountTermStructure, discountMeanReversion, discountSigma));
+					processes[0] = boost::shared_ptr<StochasticProcess1D>(referenceProcess);
+					processes[1] = boost::shared_ptr<StochasticProcess1D>(discountProcess);
+
+/*
+					boost::shared_ptr<HullWhiteProcess> processForReference(
+						new HullWhiteProcess(floatTermStructure, meanReversion, sigma));
+					boost::shared_ptr<HullWhiteProcess> processForDiscount(
+						new HullWhiteProcess(discountTermStructure, discountMeanReversion, discountSigma));
+*/				
 					//set the initialized short rate value into the process
 					if (periodIndex != 0){
-						process->setX0(x0);
+						//processes[0]->setX0(x0ForReference);
+						//processes[1]->setX0(x0ForDiscount);
+						referenceProcess->setX0(x0ForReference);
+						discountProcess->setX0(x0ForDiscount);
 					}
+					Matrix correlation(2,2);
+					correlation[0][0] = 1.0; correlation[0][1] = 0.9;
+					correlation[1][0] = 0.9; correlation[1][1] = 1.0;
+					
+					process = boost::shared_ptr<StochasticProcess>(
+                           new StochasticProcessArray(processes,correlation));
+					
+
 					//2. timeGrid
 					//TODO timeGrid에 exercise Date 추가
 					TimeGrid timeGrid(periodTenor, timeGridSize, startTenor);
 
 					//3. path Generator
-					rsg_type rsg = PseudoRandom::make_sequence_generator(timeGridSize, 
-						m_seeds[simIndex][periodIndex]);
+					rsg_type rsg = PseudoRandom::make_sequence_generator(
+						timeGridSize * process->size(), m_seeds[simIndex][periodIndex]);
 								
-					PathGenerator<rsg_type> generator(process, timeGrid, rsg, false);
+					//PathGenerator<rsg_type> generator(processForReference, timeGrid, rsg, false);
+					MultiPathGenerator<rsg_type> generator(process, timeGrid, rsg, false);
 					sample_type path1 = generator.next();
 					HullWhite hullWhite(floatTermStructure, meanReversion, sigma);
 
 					int accruedDays = 0;
 					double cumulatedDF = 1;
-					for (Size j = 0; j < generator.size(); j++){
+					for (Size j = 0; j < timeGrid.size(); j++){
 						//4. Calculate the reference Rate
 						QuantLib::Time tenor = m_floatCurveTenor1;
 						QuantLib::Time start = timeGrid[j] + startTenor;
 						Real referenceRate = - log(
-							hullWhite.discountBond(start, start + tenor, path1.value[j])) / tenor;
+							hullWhite.discountBond(start, start + tenor, path1.value[0][j])) / tenor;
 				
 						double lowerRate = m_rangeLowerRates[periodIndex];
 						double upperRate = m_rangeUpperRates[periodIndex];
 						if (referenceRate >= lowerRate && referenceRate <= upperRate) {
 							accruedDays++;
 						}
-						double rate = path1.value[j];
-						cumulatedDF *= exp(- rate * timeGrid.dt(0));
+						double rate1 = path1.value[0][j];
+						double rate2 = path1.value[1][j];
+						cumulatedDF *= exp(- rate2 * timeGrid.dt(0));
 					}
 					//initialize the short rate value
-					x0 = path1.value[generator.size() - 1];
+					x0ForReference = path1.value[0][timeGrid.size() - 1];
+					x0ForDiscount = path1.value[1][timeGrid.size() - 1];
 					coupon[periodIndex] = accruedDays * m_inCouponRates[periodIndex] * timeGrid.dt(0);
 					df[periodIndex] = cumulatedDF;
 				}

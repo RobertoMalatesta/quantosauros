@@ -21,8 +21,8 @@ namespace QuantLib {
 
 
 int QUANTOSAUROS_API __stdcall bootstrapping(long today,
-	long spotRateN, double* spotRates, SAFEARRAY** spotRatesTenor,
-	long volMaturityN, long volTenorN, double* volSurface, 
+	long rateN, double* market_ytmRates, double* market_discountRates, SAFEARRAY** spotRatesTenor,
+	long volMaturityN, long volTenorN, double* market_volSurface, 
 	SAFEARRAY** volSurfaceMaturities, SAFEARRAY** volSurfaceTenors, 
  	double* OutZeroRates, long* OutDays){
 
@@ -36,17 +36,19 @@ int QUANTOSAUROS_API __stdcall bootstrapping(long today,
 
 		#pragma region generate an Interest Rate Curve
 		std::vector<quantoSauros::InterestRate> interestRates;
+		std::vector<quantoSauros::InterestRate> discountRates;
 
-		int size = spotRateN;
+		int size = rateN;
 		for (int i = 0; i < size; i++){
 			quantoSauros::Tenor tenor = quantoSauros::Tenor(spotRatesTenorT[i]);
-			interestRates.push_back(quantoSauros::InterestRate(tenor, spotRates[i]));
+			interestRates.push_back(quantoSauros::InterestRate(tenor, market_ytmRates[i]));
+			discountRates.push_back(quantoSauros::InterestRate(tenor, market_discountRates[i]));
 		}
 		
 
 		//이자율 커브 입력변수
 		Calendar calendar = SouthKorea(SouthKorea::Settlement);
-		Natural settlementDays = 0;
+		Natural settlementDays = 1;
 		DayCounter dcf = Actual365Fixed();
 		Compounding compounding = Continuous;
 		Date todayDate = Date(BigInteger(today));
@@ -54,6 +56,9 @@ int QUANTOSAUROS_API __stdcall bootstrapping(long today,
 		//이자율 커브 생성
 		quantoSauros::InterestRateCurve irCurve(todayDate, interestRates,
 			calendar, settlementDays, dcf, compounding);
+		quantoSauros::InterestRateCurve discountCurve(todayDate, discountRates,
+			calendar, settlementDays, dcf, compounding);
+
 		Period maturity(1, Years);
 		Period tenor(3, Years);
 		//double forwardRate = irCurve.getForwardRate(1, 1.25);
@@ -73,7 +78,7 @@ int QUANTOSAUROS_API __stdcall bootstrapping(long today,
 			for (int maturityIndex = 0; maturityIndex < volMaturityN; maturityIndex++){	
 
 				quantoSauros::Tenor volMaturity = quantoSauros::Tenor(volSurfaceMaturitiesT[maturityIndex]);
-				double vol = volSurface[maturityIndex + tenorIndex * volTenorN];
+				double vol = market_volSurface[maturityIndex + tenorIndex * volTenorN];
 				//Time t = 0;
 				vols.push_back(quantoSauros::Volatility(volMaturity ,vol));
 			}
@@ -150,12 +155,24 @@ int QUANTOSAUROS_API __stdcall bootstrapping(long today,
 			monitorFrequency);
 
 		Money asd = raNote.getNotional();
-		int seed = 100;
+		int simulationNum = 100;
 		Real meanReversion = 0.01;
 		Real sigma = 0.001;
 		Date asOfDate = issueDate;// Date(Day(1), Month(8), Year(2017));
+		
+		
+		raNote.getPrice(asOfDate, irCurve, volSurfaces, meanReversion, sigma, 
+			discountCurve, volSurfaces, meanReversion, sigma,
+			simulationNum);
 			
-		raNote.getPrice(asOfDate, irCurve, volSurfaces, meanReversion, sigma, seed);
+		//PathGeneratorTest tester1;
+
+		//tester1.testMultiPathGenerator();
+
+		//ShortRateModelTest tester2;
+
+		//tester2.testCachedHullWhite(irCurve);
+
 		//std::vector<quantoSauros::Volatility> asdasd = volCurve.getVolatilityCurve();
 		//int index = volCurve.Length();
 		
