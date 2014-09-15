@@ -85,6 +85,7 @@
     <ClInclude Include="quantosauros.h" />
     <ClInclude Include="RangeAccrualNote.h" />
     <ClInclude Include="RateMarketDate.h" />
+    <ClInclude Include="SABRCalibration.h" />
     <ClInclude Include="shortratemodels.h" />
     <ClInclude Include="Tenor.h" />
     <ClInclude Include="util.h" />
@@ -103,6 +104,7 @@
     <ClCompile Include="pathgenerator.cpp" />
     <ClCompile Include="quantosauros.cpp" />
     <ClCompile Include="RangeAccrualNote.cpp" />
+    <ClCompile Include="SABRCalibration.cpp" />
     <ClCompile Include="shorratemodels.cpp" />
     <ClCompile Include="Tenor.cpp" />
     <ClCompile Include="util.cpp" />

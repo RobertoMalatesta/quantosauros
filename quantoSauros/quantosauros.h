@@ -18,6 +18,7 @@
 #include "RangeAccrualNote.h";
 #include "pathgenerator.h";
 #include "shortratemodels.h";
+#include "SABRCalibration.h";
 //#include "test_libormarketmodel.h";
 //#include "test_libormarketmodelprocess.h";
 //#include "test_lowdiscrepancysequence.h";

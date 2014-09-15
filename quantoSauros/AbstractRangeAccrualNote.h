@@ -38,8 +38,8 @@ namespace quantoSauros {
 		std::vector<double> m_rangeUpperRates; 
 		std::vector<double> m_rangeLowerRates;
 		//행사 정보
-		std::vector<QuantLib::Date> m_exerciseDates;
-		std::vector<double> m_exercisePrices;
+		//std::vector<QuantLib::Date> m_exerciseDates;
+		//std::vector<double> m_exercisePrices;
 		QuantLib::Option::Type m_optionType;
 		//기타 정보
 		int m_monitorFrequency;

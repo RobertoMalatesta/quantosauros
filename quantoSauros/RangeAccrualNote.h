@@ -13,8 +13,7 @@ namespace quantoSauros {
 			double floatCurveTenor1, QuantLib::Frequency swapCouponFrequency1,
 			std::vector<double> inCouponRates, std::vector<double> outCouponRates,
 			std::vector<quantoSauros::Period> rangePeriods,
-			std::vector<double> rangeUpperRates, std::vector<double> rangeLowerRates,
-			std::vector<QuantLib::Date> exerciseDates, std::vector<double> exercisePrices,
+			std::vector<double> rangeUpperRates, std::vector<double> rangeLowerRates,			
 			QuantLib::Option::Type optionType,
 			int monitorFrequency
 			);

@@ -111,6 +111,9 @@
     <ClInclude Include="shortratemodels.h">
       <Filter>Header Files\Test</Filter>
     </ClInclude>
+    <ClInclude Include="SABRCalibration.h">
+      <Filter>Header Files\Test</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="quantoSauros.def">
@@ -155,6 +158,9 @@
       <Filter>Source Files\Test</Filter>
     </ClCompile>
     <ClCompile Include="shorratemodels.cpp">
+      <Filter>Source Files\Test</Filter>
+    </ClCompile>
+    <ClCompile Include="SABRCalibration.cpp">
       <Filter>Source Files\Test</Filter>
     </ClCompile>
   </ItemGroup>

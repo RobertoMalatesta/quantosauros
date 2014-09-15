@@ -97,46 +97,54 @@ int QUANTOSAUROS_API __stdcall bootstrapping(long today,
 		Currency KRW = KRWCurrency();
 		QuantLib::Money notional(KRW, 10000);
 		
+		//Range 구간 데이터
+		int day = 1;
+		int month = 5;
+		int year[] = {2015, 2016, 2017, 2018, 2019, 2020};
+		bool exerciseFlag[] = {false, true, true, true, false};
+		//bool exerciseFlag[] = {false, false, false, false, false};
+		
+		int numOfRange = 5;
+		int numOfExercise = 3;
+		Date* exerciseDate = new Date[numOfRange + 1];
+		double* exercisePrice = new double[numOfRange + 1];
+		Date* rangeDates = new Date[numOfRange + 1];
+		for (int i = 0; i < numOfRange + 1; i++){
+			rangeDates[i] = Date(Day(day), Month(month), Year(year[i]));
+			if (exerciseFlag[i] == true){
+				exerciseDate[i] = Date(Day(day), Month(month), Year(year[i + 1]));
+				exercisePrice[i] = 1.0;
+			}
+		}
+
 		Frequency swapCouponFrequency1 = Quarterly;
 		double floatTenor = 0.25;
+		double incoupon[] = {0.04, 0.04, 0.04, 0.04, 0.04};
+		double outcoupon[] = {0.0, 0.0, 0.0, 0.0, 0.0};
+		double rangeupper[] = {0.032, 0.032, 0.032, 0.032, 0.032};
+		double rangelower[] = {0.020, 0.020, 0.020, 0.020, 0.020};
+
 		std::vector<double> inCouponRates;
-		inCouponRates.push_back(0.04);
-		inCouponRates.push_back(0.05);
-		inCouponRates.push_back(0.06);
-		inCouponRates.push_back(0.06);
 		std::vector<double> outCouponRates;
-		outCouponRates.push_back(0.0);
-		outCouponRates.push_back(0.0);
-		outCouponRates.push_back(0.0);
-		outCouponRates.push_back(0.0);
-
-		std::vector<quantoSauros::Period> rangePeriods;
-		rangePeriods.push_back(quantoSauros::Period(
-			Date(Day(1), Month(5), Year(2015)), Date(Day(1), Month(5), Year(2016))));
-		rangePeriods.push_back(quantoSauros::Period(
-			Date(Day(1), Month(5), Year(2016)), Date(Day(1), Month(5), Year(2017))));
-		rangePeriods.push_back(quantoSauros::Period(
-			Date(Day(1), Month(5), Year(2017)), Date(Day(1), Month(5), Year(2018))));
-		rangePeriods.push_back(quantoSauros::Period(
-			Date(Day(1), Month(5), Year(2018)), Date(Day(1), Month(5), Year(2019))));
-
 		std::vector<double> rangeUpperRates;
-		rangeUpperRates.push_back(0.032);
-		rangeUpperRates.push_back(0.032);
-		rangeUpperRates.push_back(0.032);
-		rangeUpperRates.push_back(0.032);
-
 		std::vector<double> rangeLowerRates;
-		rangeLowerRates.push_back(0.00);
-		rangeLowerRates.push_back(0.00);
-		rangeLowerRates.push_back(0.00);
-		rangeLowerRates.push_back(0.00);
+		std::vector<quantoSauros::Period> rangePeriods;
 
-		std::vector<QuantLib::Date> exerciseDates;
-		exerciseDates.push_back(QuantLib::Date(Date(Day(1), Month(5), Year(2015))));
+		for (int i = 0; i < numOfRange; i++){
+			inCouponRates.push_back(incoupon[i]);
+			outCouponRates.push_back(outcoupon[i]);
+			if (exerciseFlag[i] == true){
+				rangePeriods.push_back(
+					quantoSauros::Period(rangeDates[i], rangeDates[i + 1], exerciseDate[i], exercisePrice[i]));
+			} else {
+				rangePeriods.push_back(
+					quantoSauros::Period(rangeDates[i], rangeDates[i + 1]));
+			}
+			
+			rangeUpperRates.push_back(rangeupper[i]);
+			rangeLowerRates.push_back(rangelower[i]);
+		}
 
-		std::vector<double> exercisePrices;
-		exercisePrices.push_back(1.0);
 		
 		QuantLib::DayCounter dcf1 = Actual360();
 		bool includePrincipal = true;
@@ -144,14 +152,14 @@ int QUANTOSAUROS_API __stdcall bootstrapping(long today,
 		int monitorFrequency = 30;
 
 		QuantLib::Date issueDate = Date(Day(1), Month(5), Year(2015));
-		QuantLib::Date maturityDate = QuantLib::Date(Day(1), Month(5), Year(2019));
+		QuantLib::Date maturityDate = QuantLib::Date(Day(1), Month(5), Year(2020));
 
 		quantoSauros::RangeAccrualNote raNote(notional, 
 			issueDate, maturityDate, dcf1, includePrincipal, 
 			floatTenor, swapCouponFrequency1,
 			inCouponRates, outCouponRates,
 			rangePeriods, rangeUpperRates, rangeLowerRates,
-			exerciseDates, exercisePrices, optionType,
+			optionType,
 			monitorFrequency);
 
 		Money asd = raNote.getNotional();
@@ -165,6 +173,8 @@ int QUANTOSAUROS_API __stdcall bootstrapping(long today,
 			discountCurve, volSurfaces, meanReversion, sigma,
 			simulationNum);
 			
+		//SABRTest().run();
+
 		//PathGeneratorTest tester1;
 
 		//tester1.testMultiPathGenerator();

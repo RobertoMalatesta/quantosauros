@@ -2,16 +2,17 @@
 
 namespace quantoSauros {
 	RangeAccrualNote::RangeAccrualNote(QuantLib::Money notional,
+		//날짜정보
 		QuantLib::Date issueDate, QuantLib::Date maturityDate,
+		//기타정보
 		QuantLib::DayCounter dcf, bool includePrincipal,
 		//기준금리1 정보
 		double floatCurveTenor1, QuantLib::Frequency swapCouponFrequency1,
 		//Range 구간 정보
 		std::vector<double> inCouponRates, std::vector<double> outCouponRates,
 		std::vector<quantoSauros::Period> rangePeriods,
-		std::vector<double> rangeUpperRates, std::vector<double> rangeLowerRates,
-		//행사 정보
-		std::vector<QuantLib::Date> exerciseDates, std::vector<double> exercisePrices,
+		std::vector<double> rangeUpperRates, std::vector<double> rangeLowerRates,		
+		//행사정보
 		QuantLib::Option::Type optionType,
 		//기타정보
 		int monitorFrequency
@@ -28,18 +29,22 @@ namespace quantoSauros {
 			m_rangePeriods = rangePeriods;
 			m_rangeUpperRates = rangeUpperRates;
 			m_rangeLowerRates = rangeLowerRates;
-			m_exerciseDates = exerciseDates;
-			m_exercisePrices = exercisePrices;
+			
 			m_optionType = optionType;
 			m_monitorFrequency = monitorFrequency;
 	}
-	QuantLib::Money RangeAccrualNote::getPrice(QuantLib::Date today, 
+	QuantLib::Money RangeAccrualNote::getPrice(
+		//날짜정보
+		QuantLib::Date today, 
+		//기준금리 정보
 		quantoSauros::InterestRateCurve floatCurve,
 		quantoSauros::VolatilitySurface volatilitySurface,
 		QuantLib::Real meanReversion, QuantLib::Real sigma, 
+		//할인금리 정보
 		quantoSauros::InterestRateCurve discountCurve,
 		quantoSauros::VolatilitySurface discountVolatilitySurface,
 		QuantLib::Real discountMeanReversion, QuantLib::Real discountSigma,
+		//기타
 		int simulationNum){
 
 			typedef PseudoRandom::rsg_type rsg_type;
@@ -130,7 +135,6 @@ namespace quantoSauros {
 					process = boost::shared_ptr<StochasticProcess>(
                            new StochasticProcessArray(processes,correlation));
 					
-
 					//2. timeGrid
 					//TODO timeGrid에 exercise Date 추가
 					TimeGrid timeGrid(periodTenor, timeGridSize, startTenor);
@@ -183,11 +187,22 @@ namespace quantoSauros {
 			for (int periodIndex = periodLength - 1; periodIndex >= 0; periodIndex--){
 				
 				std::vector<double> payoff(simulationNum);
+				bool hasExercise = m_rangePeriods[periodIndex].hasExercise();
+				double exercisePrice = m_rangePeriods[periodIndex].getExercisePrice();
+				
 				for (int simIndex = 0; simIndex < simulationNum; simIndex++){				
-
-					double value = (payoffs[periodIndex + 1][simIndex] + coupons[simIndex][periodIndex]) 
-					* dfs[simIndex][periodIndex];
-					payoff[simIndex] = value;
+					double previousPayoff = payoffs[periodIndex + 1][simIndex];
+					double coupon = coupons[simIndex][periodIndex];
+					double df = dfs[simIndex][periodIndex];
+					if (hasExercise){
+						if (previousPayoff < exercisePrice){
+							payoff[simIndex] = (previousPayoff + coupon) * df;
+						} else {
+							payoff[simIndex] = (exercisePrice + coupon) * df;
+						}
+					} else {
+						payoff[simIndex] = (previousPayoff + coupon) * df;
+					}
 				}
 				payoffs[periodIndex] = payoff;
 			}
