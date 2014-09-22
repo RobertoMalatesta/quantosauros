@@ -114,6 +114,9 @@
     <ClInclude Include="SABRCalibration.h">
       <Filter>Header Files\Test</Filter>
     </ClInclude>
+    <ClInclude Include="mclongstaffschwartzengine.h">
+      <Filter>Header Files\Test</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="quantoSauros.def">
@@ -161,6 +164,9 @@
       <Filter>Source Files\Test</Filter>
     </ClCompile>
     <ClCompile Include="SABRCalibration.cpp">
+      <Filter>Source Files\Test</Filter>
+    </ClCompile>
+    <ClCompile Include="mclongstaffschwartzengine.cpp">
       <Filter>Source Files\Test</Filter>
     </ClCompile>
   </ItemGroup>

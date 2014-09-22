@@ -114,6 +114,66 @@ void ShortRateModelTest::testCachedHullWhite(
    
 }
 
+void ShortRateModelTest::testHullWhite2F(quantoSauros::InterestRateCurve floatCurve) {
+    
+    SavedSettings backup;
+    IndexHistoryCleaner cleaner;
+
+	Date today(3, March, 2014);
+	Date settlement(4, March, 2014);
+    Settings::instance().evaluationDate() = today;
+
+    //Handle<YieldTermStructure> termStructure(flatRate(settlement,0.04875825,Actual365Fixed()));
+	Handle<YieldTermStructure> termStructure(floatCurve.getInterestRateCurve());
+
+	boost::shared_ptr<G2> model(new G2(termStructure));
+    CalibrationData data[] = {{ 1, 1, 0.159332 },
+                              { 1, 10, 0.168134 },
+                              { 2, 3, 0.125341 },
+                              { 5, 5, 0.1393 },
+                              { 5, 10, 0.129832 },
+							  { 7, 3, 0.134 }
+	};
+	boost::shared_ptr<IborIndex> index(new KRWibor3M(termStructure));
+
+    boost::shared_ptr<PricingEngine> engine(new G2SwaptionEngine(model, 6, 16));
+
+    std::vector<boost::shared_ptr<CalibrationHelper> > swaptions;
+    for (Size i=0; i<LENGTH(data); i++) {
+        boost::shared_ptr<Quote> vol(new SimpleQuote(data[i].volatility));
+        boost::shared_ptr<CalibrationHelper> helper(
+                             new SwaptionHelper(Period(data[i].start, Years),
+                                                Period(data[i].length, Years),
+                                                Handle<Quote>(vol),
+                                                index,
+                                                Period(3, Months), Actual365Fixed(),
+                                                Actual365Fixed(), termStructure));
+        helper->setPricingEngine(engine);
+        swaptions.push_back(helper);
+    }
+
+    // Set up the optimization problem
+    // Real simplexLambda = 0.1;
+    // Simplex optimizationMethod(simplexLambda);
+    LevenbergMarquardt optimizationMethod(1.0e-8,1.0e-8,1.0e-8);
+    EndCriteria endCriteria(10000, 100, 1e-6, 1e-8, 1e-8);
+
+    //Optimize
+    model->calibrate(swaptions, optimizationMethod, endCriteria);
+    EndCriteria::Type ecType = model->endCriteria();
+
+    // Check and print out results
+    Array xMinCalculated = model->params();
+    Real yMinCalculated = model->value(xMinCalculated, swaptions);
+
+	Real a = xMinCalculated[0];
+	Real b = xMinCalculated[1];
+	Real vol1 = xMinCalculated[2];
+	Real vol2 = xMinCalculated[3];
+	Real correlation = xMinCalculated[4];
+   
+}
+
 void ShortRateModelTest::testCachedHullWhiteFixedReversion() {
     BOOST_TEST_MESSAGE("Testing Hull-White calibration with fixed reversion against cached values...");
 
@@ -189,7 +249,6 @@ void ShortRateModelTest::testCachedHullWhiteFixedReversion() {
                     << "end criteria = " << ecType );
     }
 }
-
 
 void ShortRateModelTest::testCachedHullWhite2() {
     BOOST_TEST_MESSAGE("Testing Hull-White calibration against cached "

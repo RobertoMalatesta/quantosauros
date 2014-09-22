@@ -4,12 +4,11 @@ namespace quantoSauros{
 	Tenor::Tenor(void)
 	{
 	}
-	Tenor::Tenor(LPCSTR code)
+	Tenor::Tenor(CString code)
 	{
-		USES_CONVERSION;
-		CString cstr = A2CT(code);
-		CString timeUnitStr = cstr.Left(1);
-		CString integerStr = cstr.Right(cstr.GetLength() - 1);
+		//USES_CONVERSION;		
+		CString timeUnitStr = code.Left(1);
+		CString integerStr = code.Right(code.GetLength() - 1);
 		
 		m_timeInteger = atoi(integerStr);
 

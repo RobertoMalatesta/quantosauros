@@ -9,7 +9,7 @@ namespace quantoSauros{
 	{
 	public:
 		Tenor(void);
-		Tenor(LPCSTR code);				
+		Tenor(CString code);				
 		Tenor(QuantLib::Period period);
 		Time getTenorInTime();
 		//Time getTenorInTime(DayCounter dcf);

@@ -79,6 +79,7 @@
     <ClInclude Include="AbstractRangeAccrualNote.h" />
     <ClInclude Include="InterestRate.h" />
     <ClInclude Include="InterestRateCurve.h" />
+    <ClInclude Include="mclongstaffschwartzengine.h" />
     <ClInclude Include="pathgenerator.h" />
     <ClInclude Include="PaymentPeriod.h" />
     <ClInclude Include="Period.h" />
@@ -101,6 +102,7 @@
   <ItemGroup>
     <ClCompile Include="InterestRate.cpp" />
     <ClCompile Include="InterestRateCurve.cpp" />
+    <ClCompile Include="mclongstaffschwartzengine.cpp" />
     <ClCompile Include="pathgenerator.cpp" />
     <ClCompile Include="quantosauros.cpp" />
     <ClCompile Include="RangeAccrualNote.cpp" />

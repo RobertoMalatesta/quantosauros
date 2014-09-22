@@ -13,27 +13,11 @@ namespace quantoSauros{
 	{
 	public:
 		util();
-		LPCSTR* conversion(SAFEARRAY** safeArray);
+		//LPCSTR* conversion(SAFEARRAY** safeArray);
+		CString* util::conversion(SAFEARRAY** safeArray);
 
 		~util(void);
 	};	
 }
-struct RateData {
-		enum RateType
-		{
-			SwapRate, DepositRate,
-		};
-		quantoSauros::Tenor tenor;
-		//Integer n;
-		//TimeUnit units;
-		Rate rate;
-		RateType type;
-};
-/*
-template<typename T>
-int ArraySize(T*& arr){
-	return _msize(arr);
-}
-*/
 
 
