@@ -27,7 +27,7 @@
 
 using namespace QuantLib;
 
-int QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
+double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 	//금리정보
 	long rateN, double* market_ytmRates, double* market_discountRates, SAFEARRAY** spotRatesTenor,
 	//변동성정보
@@ -42,7 +42,7 @@ int QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 	SAFEARRAY** callFlags, 
 	SAFEARRAY** in_issueDate, SAFEARRAY** in_maturityDate,
 	//결과
-	double* OutZeroRates, long* OutDays);
+	double* price);
 
 
 /*

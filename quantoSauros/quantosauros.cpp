@@ -20,7 +20,7 @@ namespace QuantLib {
 #include "quantosauros.h";
 
 
-int QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
+double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 	//금리정보
 	long rateN, double* market_ytmRates, double* market_discountRates, SAFEARRAY** spotRatesTenor,
 	//변동성정보
@@ -35,23 +35,22 @@ int QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 	SAFEARRAY** callFlags, 
 	SAFEARRAY** in_issueDate, SAFEARRAY** in_maturityDate,
 	//결과
- 	double* OutZeroRates, long* OutDays){
+ 	double* price){
 
 		//util class를 이용하여 input data의 type을 변환
 		#pragma region Convert the type of input data
-		quantoSauros::util util = quantoSauros::util();
 
-		CString* new_today = util.conversion(today);
-		CString* spotRatesTenorT = util.conversion(spotRatesTenor);
-		CString* volSurfaceMaturitiesT = util.conversion(volSurfaceMaturities);
-		CString* volSurfaceTenorsT = util.conversion(volSurfaceTenors);
-		CString* new_ccyCd = util.conversion(in_ccyCd);
-		CString* new_dcf = util.conversion(in_dcf);
-		CString* new_rangeStartDays = util.conversion(rangeStartDays);
-		CString* new_rangeEndDays = util.conversion(rangeEndDays);
-		CString* new_callFlags = util.conversion(callFlags);
-		CString* new_issueDate = util.conversion(in_issueDate);
-		CString* new_maturityDate = util.conversion(in_maturityDate);
+		CString* new_today = quantoSauros::util().conversion(today);
+		CString* spotRatesTenorT = quantoSauros::util().conversion(spotRatesTenor);
+		CString* volSurfaceMaturitiesT = quantoSauros::util().conversion(volSurfaceMaturities);
+		CString* volSurfaceTenorsT = quantoSauros::util().conversion(volSurfaceTenors);
+		CString* new_ccyCd = quantoSauros::util().conversion(in_ccyCd);
+		CString* new_dcf = quantoSauros::util().conversion(in_dcf);
+		CString* new_rangeStartDays = quantoSauros::util().conversion(rangeStartDays);
+		CString* new_rangeEndDays = quantoSauros::util().conversion(rangeEndDays);
+		CString* new_callFlags = quantoSauros::util().conversion(callFlags);
+		CString* new_issueDate = quantoSauros::util().conversion(in_issueDate);
+		CString* new_maturityDate = quantoSauros::util().conversion(in_maturityDate);
 
 		#pragma endregion
 
@@ -117,21 +116,10 @@ int QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 		#pragma endregion
 
 		//Range Accrual Note		
-		Currency currency;		
-		//TODO Currency 클래스 생성
-		if (new_ccyCd[0] == "KRW"){
-			currency = KRWCurrency();
-		} else {
-			currency = KRWCurrency();
-		}
+		Currency currency = quantoSauros::util().Currency(new_ccyCd[0]);			
 		QuantLib::Money notional(currency, in_NotionalAmount);
-
-		QuantLib::DayCounter dcf1;
-		if (new_dcf[0] == "ACT/365"){
-			dcf1 = Actual365Fixed();
-		} else {
-			dcf1 = Actual360();
-		}
+		QuantLib::DayCounter dcf1 = quantoSauros::util().DayCounter(new_dcf[0]);
+		
 		//Range 구간 데이터
 		int* EndDay = new int[rangeN];
 		int* EndMonth = new int[rangeN];
@@ -200,7 +188,6 @@ int QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 			
 		}
 
-
 		bool includePrincipal = true;
 		QuantLib::Option::Type optionType = QuantLib::Option::Type::Call;
 		int monitorFrequency = 10;
@@ -217,10 +204,11 @@ int QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 		Real meanReversion = 0.01;
 		Real sigma = 0.001;		
 		
-		raNote.getPrice(todayDate, irCurve, volSurfaces, meanReversion, sigma, 
+		QuantLib::Money raPrice = raNote.getPrice(todayDate, irCurve, volSurfaces, meanReversion, sigma, 
 			discountCurve, volSurfaces, meanReversion, sigma,
 			simulationNum);
 		
+		//price = (double)raPrice.value();
 
 		//MCLongstaffSchwartzEngineTest LONGSTAFFTEST;
 		//LONGSTAFFTEST.testAmericanMaxOption();
@@ -261,5 +249,6 @@ int QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 		test.testSimpleCovarianceModels();
 		test.testCalibration();
 		*/
- 	return 1;
+		
+		return raPrice.value();
 }

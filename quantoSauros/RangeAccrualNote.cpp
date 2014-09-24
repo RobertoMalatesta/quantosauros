@@ -11,6 +11,7 @@ namespace quantoSauros {
 		//Range 구간 정보
 		std::vector<double> inCouponRates, std::vector<double> outCouponRates,
 		std::vector<quantoSauros::Period> rangePeriods,
+
 		std::vector<double> rangeUpperRates, std::vector<double> rangeLowerRates,		
 		//행사정보
 		QuantLib::Option::Type optionType,

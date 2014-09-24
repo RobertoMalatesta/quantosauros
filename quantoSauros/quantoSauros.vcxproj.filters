@@ -55,6 +55,9 @@
     <Filter Include="Source Files\Core\instruments\Swaps">
       <UniqueIdentifier>{8c737bb9-aa2e-4c00-9bd2-b1ae4073588e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Core\derivatives\LegInfo">
+      <UniqueIdentifier>{0b793498-eaaf-46dc-936a-fb5773c439fc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractPeriod.h">
@@ -117,6 +120,24 @@
     <ClInclude Include="mclongstaffschwartzengine.h">
       <Filter>Header Files\Test</Filter>
     </ClInclude>
+    <ClInclude Include="AbstractLegInfo.h">
+      <Filter>Header Files\Core\derivatives\LegInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="LegCouponInfo.h">
+      <Filter>Header Files\Core\derivatives\LegInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="LegScheduleInfo.h">
+      <Filter>Header Files\Core\derivatives\LegInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="LegDataInfo.h">
+      <Filter>Header Files\Core\derivatives\LegInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="LegOptionInfo.h">
+      <Filter>Header Files\Core\derivatives\LegInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="LegAmortizationInfo.h">
+      <Filter>Header Files\Core\derivatives\LegInfo</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="quantoSauros.def">
@@ -134,9 +155,6 @@
       <Filter>Source Files\Commons</Filter>
     </ClCompile>
     <ClCompile Include="Tenor.cpp">
-      <Filter>Source Files\Commons</Filter>
-    </ClCompile>
-    <ClCompile Include="util.cpp">
       <Filter>Source Files\Commons</Filter>
     </ClCompile>
     <ClCompile Include="VolatilityCurve.cpp">

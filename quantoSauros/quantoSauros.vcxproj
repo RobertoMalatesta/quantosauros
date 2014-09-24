@@ -75,10 +75,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AbstractLegInfo.h" />
     <ClInclude Include="AbstractPeriod.h" />
     <ClInclude Include="AbstractRangeAccrualNote.h" />
     <ClInclude Include="InterestRate.h" />
     <ClInclude Include="InterestRateCurve.h" />
+    <ClInclude Include="LegAmortizationInfo.h" />
+    <ClInclude Include="LegCouponInfo.h" />
+    <ClInclude Include="LegDataInfo.h" />
+    <ClInclude Include="LegOptionInfo.h" />
+    <ClInclude Include="LegScheduleInfo.h" />
     <ClInclude Include="mclongstaffschwartzengine.h" />
     <ClInclude Include="pathgenerator.h" />
     <ClInclude Include="PaymentPeriod.h" />
@@ -109,7 +115,6 @@
     <ClCompile Include="SABRCalibration.cpp" />
     <ClCompile Include="shorratemodels.cpp" />
     <ClCompile Include="Tenor.cpp" />
-    <ClCompile Include="util.cpp" />
     <ClCompile Include="utilities.cpp" />
     <ClCompile Include="VanillaSwap.cpp" />
     <ClCompile Include="Volatility.cpp" />
