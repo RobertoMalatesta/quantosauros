@@ -1,6 +1,7 @@
 #include "RangeAccrualNote.h"
 
 namespace quantoSauros {
+	/*
 	RangeAccrualNote::RangeAccrualNote(QuantLib::Money notional,
 		//날짜정보
 		QuantLib::Date issueDate, QuantLib::Date maturityDate,
@@ -11,7 +12,6 @@ namespace quantoSauros {
 		//Range 구간 정보
 		std::vector<double> inCouponRates, std::vector<double> outCouponRates,
 		std::vector<quantoSauros::Period> rangePeriods,
-
 		std::vector<double> rangeUpperRates, std::vector<double> rangeLowerRates,		
 		//행사정보
 		QuantLib::Option::Type optionType,
@@ -32,29 +32,66 @@ namespace quantoSauros {
 			m_rangeLowerRates = rangeLowerRates;
 			
 			m_optionType = optionType;
-			m_monitorFrequency = monitorFrequency;
+			m_monitorFrequency = monitorFrequency;			
+	}
+	*/
+	RangeAccrualNote::RangeAccrualNote(
+		quantoSauros::NoteLegScheduleInfo* scheduleInfo,
+		quantoSauros::NoteLegAmortizationInfo* amortizationInfo,
+		std::vector<quantoSauros::NoteLegRangeCouponInfo*> couponInfos,
+		quantoSauros::NoteLegDataInfo* dataInfo,
+		quantoSauros::NoteLegOptionInfo* optionInfo,
+		//기준금리 정보
+		std::vector<quantoSauros::IRInfo> irInfos,
+		//할인금리 정보
+		quantoSauros::IRInfo discountInfo,
+		//상관계수 정보
+		quantoSauros::CorrelationInfo correlationInfo
+		){
+			m_notional = amortizationInfo->getNotional();
+			m_issueDate = scheduleInfo->getIssueDate();
+			m_maturityDate = scheduleInfo->getMaturityDate();
+			m_dcf = scheduleInfo->getDayCounter();
+			m_includePrincipal = amortizationInfo->getIncludePrincipal();
+
+			
+			m_floatCurveTenor1 = couponInfos[0]->getTenor1();
+			m_swapCouponFrequency = couponInfos[0]->getSwapCouponFrequency1();
+			m_inCouponRates = couponInfos[0]->getInCouponRates();
+			m_outCouponRates = couponInfos[0]->getOutCouponRates();
+
+			m_rangePeriods = scheduleInfo->getPeriods();
+
+			m_rangeUpperRates = couponInfos[0]->getUpperBounds();
+			m_rangeLowerRates = couponInfos[0]->getLowerBounds();
+			
+			m_optionType = optionInfo->getOptionType();
+			m_monitorFrequency = dataInfo->getMonitorFrequency();
+			m_accruedCoupon = dataInfo->getAccruedCoupon();
+			m_correlationMatrix = correlationInfo.getCorrelationMatrix();
 	}
 	QuantLib::Money RangeAccrualNote::getPrice(
 		//날짜정보
 		QuantLib::Date today, 
 		//기준금리 정보
-		quantoSauros::InterestRateCurve floatCurve,
-		quantoSauros::VolatilitySurface volatilitySurface,
-		QuantLib::Real meanReversion, QuantLib::Real sigma, 
+		std::vector<quantoSauros::IRInfo> irInfos,
 		//할인금리 정보
-		quantoSauros::InterestRateCurve discountCurve,
-		quantoSauros::VolatilitySurface discountVolatilitySurface,
-		QuantLib::Real discountMeanReversion, QuantLib::Real discountSigma,
+		quantoSauros::IRInfo discountInfo,
 		//기타
 		int simulationNum){
 
 			typedef PseudoRandom::rsg_type rsg_type;
 			//typedef PathGenerator<rsg_type>::sample_type sample_type;
 			typedef MultiPathGenerator<rsg_type>::sample_type sample_type;
-
+			
+			HullWhiteParameters params = irInfos[0].getHullWhiteParams();
+			HullWhiteParameters discountParams = discountInfo.getHullWhiteParams(); 
 			double t = m_dcf.yearFraction(today, m_maturityDate);
+			
+			quantoSauros::InterestRateCurve floatCurve1 = irInfos[0].getInterestRateCurve();
+			quantoSauros::InterestRateCurve discountCurve = discountInfo.getInterestRateCurve();
 
-			Handle<YieldTermStructure> floatTermStructure(floatCurve.getInterestRateCurve());
+			Handle<YieldTermStructure> floatTermStructure(floatCurve1.getInterestRateCurve());
 			Handle<YieldTermStructure> discountTermStructure(discountCurve.getInterestRateCurve());
 
 			//dividing Range Periods
@@ -72,11 +109,13 @@ namespace quantoSauros {
 			m_inCouponRates.erase(m_inCouponRates.begin(), m_inCouponRates.begin() + idx);
 			m_outCouponRates.erase(m_outCouponRates.begin(), m_outCouponRates.begin() + idx);
 			
-			QuantLib::Size timeGridSize = 10;			
+			double periodTenor = m_rangePeriods[0].getPeriodTenor(m_dcf);
+			
+			QuantLib::Size timeGridSize = ceil(periodTenor / ((double)m_monitorFrequency / 360));
 			int periodLength = m_rangePeriods.size();
 			
-			srand(time(NULL));
 			//Range 별 seed 생성
+			srand(time(NULL));
 			if (m_seeds.size() == 0){
 				for (int i = 0; i < simulationNum; i++){
 					std::vector<BigNatural> seed;
@@ -110,12 +149,13 @@ namespace quantoSauros {
 					std::vector<boost::shared_ptr<StochasticProcess1D>> processes(2);
 					boost::shared_ptr<StochasticProcess> process;
 					boost::shared_ptr<HullWhiteProcess> referenceProcess(
-						new HullWhiteProcess(floatTermStructure, meanReversion, sigma));
+						new HullWhiteProcess(floatTermStructure, 
+							params.getMeanReversion1F(), params.getVolatility1F()));
 					boost::shared_ptr<HullWhiteProcess> discountProcess(
-						new HullWhiteProcess(discountTermStructure, discountMeanReversion, discountSigma));
+						new HullWhiteProcess(discountTermStructure, 
+						discountParams.getMeanReversion1F(), discountParams.getVolatility1F()));
 					processes[0] = boost::shared_ptr<StochasticProcess1D>(referenceProcess);
 					processes[1] = boost::shared_ptr<StochasticProcess1D>(discountProcess);
-
 /*
 					boost::shared_ptr<HullWhiteProcess> processForReference(
 						new HullWhiteProcess(floatTermStructure, meanReversion, sigma));
@@ -129,12 +169,9 @@ namespace quantoSauros {
 						referenceProcess->setX0(x0ForReference);
 						discountProcess->setX0(x0ForDiscount);
 					}
-					Matrix correlation(2,2);
-					correlation[0][0] = 1.0; correlation[0][1] = 0.9;
-					correlation[1][0] = 0.9; correlation[1][1] = 1.0;
-					
+
 					process = boost::shared_ptr<StochasticProcess>(
-                           new StochasticProcessArray(processes,correlation));
+                           new StochasticProcessArray(processes,m_correlationMatrix));
 					
 					//2. timeGrid
 					//TODO timeGrid에 exercise Date 추가
@@ -147,25 +184,27 @@ namespace quantoSauros {
 					//PathGenerator<rsg_type> generator(processForReference, timeGrid, rsg, false);
 					MultiPathGenerator<rsg_type> generator(process, timeGrid, rsg, false);
 					sample_type path1 = generator.next();
-					HullWhite hullWhite(floatTermStructure, meanReversion, sigma);
+					HullWhite hullWhite(floatTermStructure, 
+						params.getMeanReversion1F(), params.getVolatility1F());
 
 					int accruedDays = 0;
 					double cumulatedDF = 1;
 					for (Size j = 0; j < timeGrid.size(); j++){
-						//4. Calculate the reference Rate
+						//4.1. Calculate the reference Rate
 						QuantLib::Time tenor = m_floatCurveTenor1;
 						QuantLib::Time start = timeGrid[j] + startTenor;
 						Real referenceRate = - log(
 							hullWhite.discountBond(start, start + tenor, path1.value[0][j])) / tenor;
 				
+						//4.2. Calculate the accrual Days
 						double lowerRate = m_rangeLowerRates[periodIndex];
 						double upperRate = m_rangeUpperRates[periodIndex];
 						if (referenceRate >= lowerRate && referenceRate <= upperRate) {
 							accruedDays++;
 						}
-						double rate1 = path1.value[0][j];
-						double rate2 = path1.value[1][j];
-						cumulatedDF *= exp(- rate2 * timeGrid.dt(0));
+						//4.3. Calculate the discount Rate
+						double dfRates = path1.value[1][j];
+						cumulatedDF *= exp(- dfRates * timeGrid.dt(0));
 					}
 					//initialize the short rate value
 					x0ForReference = path1.value[0][timeGrid.size() - 1];
@@ -211,8 +250,7 @@ namespace quantoSauros {
 			double value = 0;
 			for (int simIndex = 0; simIndex < simulationNum; simIndex++){
 				value += payoffs[0][simIndex];
-			}
-			
+			}		
 		
 			return Money(m_notional.currency(), value / simulationNum);
 	}

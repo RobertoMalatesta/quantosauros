@@ -1,13 +1,15 @@
 #pragma once
 #include <ql/quantlib.hpp>
 #include <algorithm> 
-#include "Period.h";
 #include "AbstractRangeAccrualNote.h";
+
 namespace quantoSauros {
 
 	class RangeAccrualNote : public AbstractRangeAccrualNote {
 	public:
-		RangeAccrualNote(QuantLib::Money notional, 
+		/*
+		RangeAccrualNote(
+			QuantLib::Money notional, 
 			QuantLib::Date issueDate, QuantLib::Date maturityDate, 
 			QuantLib::DayCounter dcf, bool includePrincipal,
 			double floatCurveTenor1, QuantLib::Frequency swapCouponFrequency1,
@@ -17,15 +19,31 @@ namespace quantoSauros {
 			QuantLib::Option::Type optionType,
 			int monitorFrequency
 			);
+		*/
+		RangeAccrualNote(
+			quantoSauros::NoteLegScheduleInfo* scheduleInfo,
+			quantoSauros::NoteLegAmortizationInfo* amortizationInfo,
+			std::vector<quantoSauros::NoteLegRangeCouponInfo*> couponInfos,
+			quantoSauros::NoteLegDataInfo* dataInfo,
+			quantoSauros::NoteLegOptionInfo* optionInfo,
+			//기준금리 정보
+			std::vector<quantoSauros::IRInfo> irInfos,
+			//할인금리 정보
+			quantoSauros::IRInfo discountInfo,
+			//상관계수 정보
+			quantoSauros::CorrelationInfo correlationInfo
+			);
 
-		QuantLib::Money getPrice(QuantLib::Date today, 
-			quantoSauros::InterestRateCurve floatCurve,
-			quantoSauros::VolatilitySurface volatilitySurface,
-			QuantLib::Real meanReversion, QuantLib::Real sigma,
-			quantoSauros::InterestRateCurve discountCurve,
-			quantoSauros::VolatilitySurface discountVolatilitySurface,
-			QuantLib::Real discountMeanReversion, QuantLib::Real discountSigma,
-			int simulationNum);
+		QuantLib::Money getPrice(
+			//날짜정보
+			QuantLib::Date today, 
+			//기준금리 정보
+			std::vector<quantoSauros::IRInfo> irInfos,
+			//할인금리 정보
+			quantoSauros::IRInfo discountInfo,
+			//기타
+			int simulationNum
+			);
 
 		~RangeAccrualNote(void);
 	};

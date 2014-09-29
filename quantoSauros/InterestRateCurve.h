@@ -9,6 +9,8 @@ namespace quantoSauros{
 	class InterestRateCurve
 	{
 	public:
+		InterestRateCurve(){
+		};
 		InterestRateCurve(
 			Date asOfDate, std::vector<quantoSauros::InterestRate> interestRates,
 			Calendar calendar, Natural settlementDays, DayCounter daycounter,

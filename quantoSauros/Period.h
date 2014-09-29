@@ -19,7 +19,7 @@ namespace quantoSauros {
 			m_exerciseDate = exerciseDate;
 			m_exercisePrice = exercisePrice;
 			m_hasExercise = true;
-		}		
+		}
 		QuantLib::Date getExerciseDate();
 		bool hasExercise();
 		double getExercisePrice();

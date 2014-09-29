@@ -20,6 +20,13 @@
 #include "shortratemodels.h";
 #include "SABRCalibration.h";
 #include "mclongstaffschwartzengine.h";
+#include "LegAmortizationInfo.h";
+#include "LegCouponInfo.h";
+#include "LegDataInfo.h";
+#include "LegOptionInfo.h";
+#include "LegScheduleInfo.h";
+#include "IRInfo.h";
+#include "CorrelationInfo.h";
 //#include "test_libormarketmodel.h";
 //#include "test_libormarketmodelprocess.h";
 //#include "test_lowdiscrepancysequence.h";

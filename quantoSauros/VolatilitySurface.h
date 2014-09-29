@@ -9,7 +9,8 @@ namespace quantoSauros {
 	class VolatilitySurface
 	{
 	public:
-		VolatilitySurface(Date today, 
+		quantoSauros::VolatilitySurface(){}
+		quantoSauros::VolatilitySurface(Date today, 
 			std::vector<quantoSauros::VolatilityCurve> &volCurves, DayCounter dcf);
 		Date getDate();
 		QuantLib::Volatility getVol(Time maturity, Time tenor);

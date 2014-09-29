@@ -38,7 +38,7 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
  	double* price){
 
 		//util class를 이용하여 input data의 type을 변환
-		#pragma region Convert the type of input data
+	#pragma region Convert the type of input data
 
 		CString* new_today = quantoSauros::util().conversion(today);
 		CString* spotRatesTenorT = quantoSauros::util().conversion(spotRatesTenor);
@@ -52,9 +52,9 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 		CString* new_issueDate = quantoSauros::util().conversion(in_issueDate);
 		CString* new_maturityDate = quantoSauros::util().conversion(in_maturityDate);
 
-		#pragma endregion
+	#pragma endregion
 
-		#pragma region generate an Interest Rate Curve
+	#pragma region generate an Interest Rate Curve
 		std::vector<quantoSauros::InterestRate> interestRates;
 		std::vector<quantoSauros::InterestRate> discountRates;
 
@@ -86,9 +86,9 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 		//double forwardRate = irCurve.getForwardRate(1, 1.25);
 		//double df = irCurve.getDiscountFactor(1);
 		//double swapRate = irCurve.getForwardSwapRate(maturity, tenor);		
-		#pragma endregion
+	#pragma endregion
 
-		#pragma region generate a Volatility Surface
+	#pragma region generate a Volatility Surface
 		// Vol 셋팅		
 		std::vector<quantoSauros::VolatilityCurve> volCurves;
 
@@ -113,9 +113,10 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 		//Volatility vol123 = volSurfaces.getVol(1.4,2.2);
 		//Volatility vol234 = volSurfaces.getVolatilityCurve(1).getVol(2.3);
 		//Volatility vo2345 = volSurfaces.getVolatilityCurve(1).getVol(Date(Day(1),Month(7),Year(2014)));
-		#pragma endregion
-
-		//Range Accrual Note		
+	#pragma endregion
+		
+		//Range Accrual Note	
+	#pragma region Range Accrual Note
 		Currency currency = quantoSauros::util().Currency(new_ccyCd[0]);			
 		QuantLib::Money notional(currency, in_NotionalAmount);
 		QuantLib::DayCounter dcf1 = quantoSauros::util().DayCounter(new_dcf[0]);
@@ -162,7 +163,7 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 				Year(atoi(new_maturityDate[0].Left(4))));
 
 		Frequency swapCouponFrequency1 = Quarterly;
-		double floatTenor = 0.25;
+		double tenor1 = 0.25;
 
 		std::vector<double> inCouponRates;
 		std::vector<double> outCouponRates;
@@ -190,23 +191,71 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 
 		bool includePrincipal = true;
 		QuantLib::Option::Type optionType = QuantLib::Option::Type::Call;
-		int monitorFrequency = 10;
-
-		quantoSauros::RangeAccrualNote raNote(notional, 
-			issueDate, maturityDate, dcf1, includePrincipal, 
-			floatTenor, swapCouponFrequency1,
-			inCouponRates, outCouponRates,
-			rangePeriods, rangeUpperRates, rangeLowerRates,
-			optionType,
-			monitorFrequency);
+		int monitorFrequency = 15;
 
 		int simulationNum = 100;
-		Real meanReversion = 0.01;
-		Real sigma = 0.001;		
+		Real meanReversion = 0.03;
+		Real sigma = 0.01;		
 		
-		QuantLib::Money raPrice = raNote.getPrice(todayDate, irCurve, volSurfaces, meanReversion, sigma, 
-			discountCurve, volSurfaces, meanReversion, sigma,
+		//test of LegInfo
+		QuantLib::Frequency couponFrequency = Quarterly;
+		quantoSauros::NoteLegScheduleInfo* scheduleInfo = new
+			quantoSauros::NoteLegScheduleInfo(
+				currency, rangePeriods, couponFrequency, dcf1, issueDate, maturityDate);
+
+		quantoSauros::NoteLegAmortizationInfo* amortizationInfo = 
+			new quantoSauros::NoteLegAmortizationInfo(notional, includePrincipal);
+
+		quantoSauros::RateType rateType1 = quantoSauros::DepositRate;
+		std::vector<quantoSauros::NoteLegRangeCouponInfo*> couponInfos;
+		quantoSauros::NoteLegRangeCouponInfo* couponInfo1 = new
+			quantoSauros::NoteLegSpotRangeCouponInfo(
+				rateType1, tenor1, swapCouponFrequency1, irCurve, 
+				inCouponRates, outCouponRates, 
+				rangeUpperRates, rangeLowerRates);
+		couponInfos.push_back(couponInfo1);
+
+		double executiveAccruedCoupon = 0;
+		quantoSauros::NoteLegDataInfo* dataInfo = new
+			quantoSauros::NoteLegDataInfo(executiveAccruedCoupon, monitorFrequency);
+
+		quantoSauros::NoteLegOptionInfo* optionInfo = new
+			quantoSauros::NoteLegOptionInfo(optionType);
+
+		quantoSauros::HullWhiteParameters floatParam = 
+			quantoSauros::HullWhiteParameters(meanReversion, sigma);
+		
+		quantoSauros::HullWhiteParameters discountParam = 
+			quantoSauros::HullWhiteParameters(meanReversion, sigma);
+		
+		std::vector<quantoSauros::IRInfo> irInfos;
+		irInfos.push_back(quantoSauros::IRInfo(irCurve, volSurfaces, floatParam));
+		
+		quantoSauros::IRInfo discountInfo = 
+			quantoSauros::IRInfo(irCurve, volSurfaces, discountParam);
+
+		QuantLib::Matrix correlationMatrix(2,2);		
+		correlationMatrix[0][0] = 1.0;
+		correlationMatrix[0][1] = 0.9;
+		correlationMatrix[1][0] = 0.9;
+		correlationMatrix[1][1] = 1.0;
+
+		quantoSauros::CorrelationInfo correlationInfo = 
+			quantoSauros::CorrelationInfo(correlationMatrix);
+
+		//Constructor of a Range Accrual Note
+		quantoSauros::RangeAccrualNote raNote(
+			scheduleInfo, amortizationInfo, 
+			couponInfos, dataInfo, optionInfo,
+			irInfos, discountInfo, correlationInfo
+			);
+
+		//getPrice Method of a Range Accrual Note
+		QuantLib::Money raPrice = raNote.getPrice(
+			todayDate, 
+			irInfos, discountInfo,
 			simulationNum);
+	#pragma endregion
 		
 		//price = (double)raPrice.value();
 

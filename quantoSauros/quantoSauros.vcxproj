@@ -78,8 +78,11 @@
     <ClInclude Include="AbstractLegInfo.h" />
     <ClInclude Include="AbstractPeriod.h" />
     <ClInclude Include="AbstractRangeAccrualNote.h" />
+    <ClInclude Include="CorrelationInfo.h" />
+    <ClInclude Include="HullWhiteParameters.h" />
     <ClInclude Include="InterestRate.h" />
     <ClInclude Include="InterestRateCurve.h" />
+    <ClInclude Include="IRInfo.h" />
     <ClInclude Include="LegAmortizationInfo.h" />
     <ClInclude Include="LegCouponInfo.h" />
     <ClInclude Include="LegDataInfo.h" />
@@ -92,6 +95,7 @@
     <ClInclude Include="quantosauros.h" />
     <ClInclude Include="RangeAccrualNote.h" />
     <ClInclude Include="RateMarketDate.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="SABRCalibration.h" />
     <ClInclude Include="shortratemodels.h" />
     <ClInclude Include="Tenor.h" />
@@ -120,6 +124,9 @@
     <ClCompile Include="Volatility.cpp" />
     <ClCompile Include="VolatilityCurve.cpp" />
     <ClCompile Include="VolatilitySurface.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="quantoSauros.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

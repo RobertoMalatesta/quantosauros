@@ -58,6 +58,15 @@
     <Filter Include="Header Files\Core\derivatives\LegInfo">
       <UniqueIdentifier>{0b793498-eaaf-46dc-936a-fb5773c439fc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Core\derivatives\IRInfo">
+      <UniqueIdentifier>{19a2a700-55fb-45c7-9ec9-affb7515c266}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\derivatives\Models">
+      <UniqueIdentifier>{ce7ff17d-b29f-490a-9238-925eaff5786d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\derivatives\Models\HullWhite1F">
+      <UniqueIdentifier>{17997188-83d8-4921-8eaf-58e8c1b18f4f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractPeriod.h">
@@ -138,6 +147,18 @@
     <ClInclude Include="LegAmortizationInfo.h">
       <Filter>Header Files\Core\derivatives\LegInfo</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HullWhiteParameters.h">
+      <Filter>Header Files\Core\derivatives\Models\HullWhite1F</Filter>
+    </ClInclude>
+    <ClInclude Include="IRInfo.h">
+      <Filter>Header Files\Core\derivatives\IRInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="CorrelationInfo.h">
+      <Filter>Header Files\Core\derivatives\IRInfo</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="quantoSauros.def">
@@ -187,5 +208,10 @@
     <ClCompile Include="mclongstaffschwartzengine.cpp">
       <Filter>Source Files\Test</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="quantoSauros.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
