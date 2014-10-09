@@ -44,8 +44,12 @@ namespace quantoSauros {
 			//±‚≈∏
 			int simulationNum
 			);
-
 		~RangeAccrualNote(void);
+
+	private:
+		void DividingPeriods();
+		void generateSeeds();
+		
 	};
 }
 

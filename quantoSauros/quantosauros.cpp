@@ -20,37 +20,47 @@ namespace QuantLib {
 #include "quantosauros.h";
 
 
-double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
+double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** in_today,
 	//금리정보
-	long rateN, double* market_ytmRates, double* market_discountRates, SAFEARRAY** spotRatesTenor,
+	long rateN, double* in_ytmRates, double* in_discountRates, SAFEARRAY** in_spotRatesTenor,
 	//변동성정보
-	long volMaturityN, long volTenorN, double* market_volSurface, 
-	SAFEARRAY** volSurfaceMaturities, SAFEARRAY** volSurfaceTenors, 
+	long volMaturityN, long volTenorN, double* in_volSurface, 
+	SAFEARRAY** in_volSurfaceMaturities, SAFEARRAY** in_volSurfaceTenors, 
 	//상품정보
 	SAFEARRAY** in_ccyCd, long in_NotionalAmount, SAFEARRAY** in_dcf,
+	//Range 정보
 	long rangeN,
-	double* inCouponRates1, double* outCouponRates1, 
-	double* lowerBounds1, double* upperBounds1,
-	SAFEARRAY** rangeStartDays, SAFEARRAY** rangeEndDays, 
-	SAFEARRAY** callFlags, 
+	double* in_inCouponRates, double* in_outCouponRates, 
+	double* in_lowerBounds1, double* in_upperBounds1,
+	SAFEARRAY** in_rangeStartDays, SAFEARRAY** in_rangeEndDays, 
+	SAFEARRAY** in_callFlags, 
+	//발행정보
 	SAFEARRAY** in_issueDate, SAFEARRAY** in_maturityDate,
+	//금리정보
+	long referenceN, SAFEARRAY** in_referenceType, 
+	SAFEARRAY** in_rateType, double* in_tenor, SAFEARRAY** in_swapCouponFrequency,
+	//기타정보
+	long in_monitorFrequency, long in_simulationNum,
 	//결과
  	double* price){
 
 		//util class를 이용하여 input data의 type을 변환
 	#pragma region Convert the type of input data
 
-		CString* new_today = quantoSauros::util().conversion(today);
-		CString* spotRatesTenorT = quantoSauros::util().conversion(spotRatesTenor);
-		CString* volSurfaceMaturitiesT = quantoSauros::util().conversion(volSurfaceMaturities);
-		CString* volSurfaceTenorsT = quantoSauros::util().conversion(volSurfaceTenors);
+		CString* new_today = quantoSauros::util().conversion(in_today);
+		CString* new_spotRatesTenorT = quantoSauros::util().conversion(in_spotRatesTenor);
+		CString* new_volSurfaceMaturitiesT = quantoSauros::util().conversion(in_volSurfaceMaturities);
+		CString* new_volSurfaceTenorsT = quantoSauros::util().conversion(in_volSurfaceTenors);
 		CString* new_ccyCd = quantoSauros::util().conversion(in_ccyCd);
 		CString* new_dcf = quantoSauros::util().conversion(in_dcf);
-		CString* new_rangeStartDays = quantoSauros::util().conversion(rangeStartDays);
-		CString* new_rangeEndDays = quantoSauros::util().conversion(rangeEndDays);
-		CString* new_callFlags = quantoSauros::util().conversion(callFlags);
+		CString* new_rangeStartDays = quantoSauros::util().conversion(in_rangeStartDays);
+		CString* new_rangeEndDays = quantoSauros::util().conversion(in_rangeEndDays);
+		CString* new_callFlags = quantoSauros::util().conversion(in_callFlags);
 		CString* new_issueDate = quantoSauros::util().conversion(in_issueDate);
 		CString* new_maturityDate = quantoSauros::util().conversion(in_maturityDate);
+		CString* new_referenceType = quantoSauros::util().conversion(in_referenceType);
+		CString* new_rateType = quantoSauros::util().conversion(in_rateType);		
+		CString* new_swapCouponFrequency = quantoSauros::util().conversion(in_swapCouponFrequency);
 
 	#pragma endregion
 
@@ -60,9 +70,9 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 
 		int size = rateN;
 		for (int i = 0; i < size; i++){
-			quantoSauros::Tenor tenor = quantoSauros::Tenor(spotRatesTenorT[i]);
-			interestRates.push_back(quantoSauros::InterestRate(tenor, market_ytmRates[i]));
-			discountRates.push_back(quantoSauros::InterestRate(tenor, market_discountRates[i]));
+			quantoSauros::Tenor tenor = quantoSauros::Tenor(new_spotRatesTenorT[i]);
+			interestRates.push_back(quantoSauros::InterestRate(tenor, in_ytmRates[i]));
+			discountRates.push_back(quantoSauros::InterestRate(tenor, in_discountRates[i]));
 		}		
 
 		//이자율 커브 입력변수
@@ -70,9 +80,8 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 		Natural settlementDays = 1;
 		DayCounter dcf = Actual365Fixed();
 		Compounding compounding = Continuous;
-		Date todayDate = QuantLib::Date(Day(atoi(new_today[0].Right(2))), 
-				Month(atoi(new_today[0].Mid(5,2))), 
-				Year(atoi(new_today[0].Left(4))));
+		
+		Date todayDate = quantoSauros::util().Date(new_today[0]);
 
 		//이자율 커브 생성
 		quantoSauros::InterestRateCurve irCurve(todayDate, interestRates,
@@ -94,13 +103,13 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 
 		for (int tenorIndex = 0; tenorIndex < volTenorN; tenorIndex++){
 		
-			quantoSauros::Tenor volTenor = quantoSauros::Tenor(volSurfaceTenorsT[tenorIndex]);
+			quantoSauros::Tenor volTenor = quantoSauros::Tenor(new_volSurfaceTenorsT[tenorIndex]);
 			std::vector<quantoSauros::Volatility> vols;
 
 			for (int maturityIndex = 0; maturityIndex < volMaturityN; maturityIndex++){	
 
-				quantoSauros::Tenor volMaturity = quantoSauros::Tenor(volSurfaceMaturitiesT[maturityIndex]);
-				double vol = market_volSurface[maturityIndex + tenorIndex * volTenorN];
+				quantoSauros::Tenor volMaturity = quantoSauros::Tenor(new_volSurfaceMaturitiesT[maturityIndex]);
+				double vol = in_volSurface[maturityIndex + tenorIndex * volTenorN];
 				//Time t = 0;
 				vols.push_back(quantoSauros::Volatility(volMaturity ,vol));
 			}
@@ -122,48 +131,24 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 		QuantLib::DayCounter dcf1 = quantoSauros::util().DayCounter(new_dcf[0]);
 		
 		//Range 구간 데이터
-		int* EndDay = new int[rangeN];
-		int* EndMonth = new int[rangeN];
-		int* EndYear = new int[rangeN];
-		int* StartDay = new int[rangeN];
-		int* StartMonth = new int[rangeN];
-		int* StartYear = new int[rangeN];
-		bool* exerciseFlag = new bool[rangeN];
-
-		for (int i = 0; i < rangeN; i++){
-			EndYear[i] = atoi(new_rangeEndDays[i].Left(4));
-			EndMonth[i] = atoi(new_rangeEndDays[i].Mid(5,2));
-			EndDay[i] = atoi(new_rangeEndDays[i].Right(2));			
-			StartYear[i] = atoi(new_rangeStartDays[i].Left(4));
-			StartMonth[i] = atoi(new_rangeStartDays[i].Mid(5,2));
-			StartDay[i] = atoi(new_rangeStartDays[i].Right(2));
-			exerciseFlag[i] = (new_callFlags[i] == "True") ? true: false;
-		}
-
 		Date* exerciseDate = new Date[rangeN + 1];
 		double* exercisePrice = new double[rangeN + 1];
 		Date* rangeStartDates = new Date[rangeN + 1];
 		Date* rangeEndDates = new Date[rangeN + 1];
+		bool* exerciseFlag = new bool[rangeN];
+
 		for (int i = 0; i < rangeN; i++){
-			rangeStartDates[i] = Date(Day(StartDay[i]), Month(StartMonth[i]), Year(StartYear[i])); 
-			rangeEndDates[i] = Date(Day(EndDay[i]), Month(EndMonth[i]), Year(EndYear[i]));
+			exerciseFlag[i] = quantoSauros::util().TrueOrFalse(new_callFlags[i]);
+			rangeStartDates[i] = quantoSauros::util().Date(new_rangeStartDays[i]);
+			rangeEndDates[i] = quantoSauros::util().Date(new_rangeEndDays[i]);
 			if (exerciseFlag[i] == true){
-				exerciseDate[i] = Date(Day(EndDay[i]), Month(EndMonth[i]), Year(EndYear[i]));
+				exerciseDate[i] = quantoSauros::util().Date(new_rangeEndDays[i]);				
 				exercisePrice[i] = 1.0;
 			}
 		}
 		
-		QuantLib::Date issueDate = 
-			QuantLib::Date(Day(atoi(new_issueDate[0].Right(2))), 
-				Month(atoi(new_issueDate[0].Mid(5,2))), 
-				Year(atoi(new_issueDate[0].Left(4))));
-		QuantLib::Date maturityDate = 
-					QuantLib::Date(Day(atoi(new_maturityDate[0].Right(2))), 
-				Month(atoi(new_maturityDate[0].Mid(5,2))), 
-				Year(atoi(new_maturityDate[0].Left(4))));
-
-		Frequency swapCouponFrequency1 = Quarterly;
-		double tenor1 = 0.25;
+		QuantLib::Date issueDate = quantoSauros::util().Date(new_issueDate[0]);			
+		QuantLib::Date maturityDate = quantoSauros::util().Date(new_maturityDate[0]);				
 
 		std::vector<double> inCouponRates;
 		std::vector<double> outCouponRates;
@@ -173,8 +158,8 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 
 		for (int i = 0; i < rangeN; i++){
 			
-			inCouponRates.push_back(inCouponRates1[i]);
-			outCouponRates.push_back(outCouponRates1[i]);
+			inCouponRates.push_back(in_inCouponRates[i]);
+			outCouponRates.push_back(in_outCouponRates[i]);
 			if (exerciseFlag[i] == true){
 				rangePeriods.push_back(
 					quantoSauros::Period(rangeStartDates[i], rangeEndDates[i], 
@@ -184,20 +169,21 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 					quantoSauros::Period(rangeStartDates[i], rangeEndDates[i]));
 			}
 			
-			rangeUpperRates.push_back(upperBounds1[i]);
-			rangeLowerRates.push_back(lowerBounds1[i]);
+			rangeUpperRates.push_back(in_upperBounds1[i]);
+			rangeLowerRates.push_back(in_lowerBounds1[i]);
 			
 		}
 
+		//TODO 
 		bool includePrincipal = true;
-		QuantLib::Option::Type optionType = QuantLib::Option::Type::Call;
-		int monitorFrequency = 15;
+		QuantLib::Option::Type optionType = QuantLib::Option::Type::Call;		
 
-		int simulationNum = 100;
+		//TODO hull-white calibration
 		Real meanReversion = 0.03;
 		Real sigma = 0.01;		
 		
 		//test of LegInfo
+		//TODO
 		QuantLib::Frequency couponFrequency = Quarterly;
 		quantoSauros::NoteLegScheduleInfo* scheduleInfo = new
 			quantoSauros::NoteLegScheduleInfo(
@@ -206,18 +192,37 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 		quantoSauros::NoteLegAmortizationInfo* amortizationInfo = 
 			new quantoSauros::NoteLegAmortizationInfo(notional, includePrincipal);
 
-		quantoSauros::RateType rateType1 = quantoSauros::DepositRate;
+		std::vector<quantoSauros::RateType> rateTypes;
+		std::vector<double> tenors;
+		std::vector<QuantLib::Frequency> swapCouponFrequencies;
 		std::vector<quantoSauros::NoteLegRangeCouponInfo*> couponInfos;
-		quantoSauros::NoteLegRangeCouponInfo* couponInfo1 = new
-			quantoSauros::NoteLegSpotRangeCouponInfo(
-				rateType1, tenor1, swapCouponFrequency1, irCurve, 
-				inCouponRates, outCouponRates, 
-				rangeUpperRates, rangeLowerRates);
-		couponInfos.push_back(couponInfo1);
+		for (int i = 0; i < referenceN; i++){
+			rateTypes.push_back(quantoSauros::util::RateType(new_rateType[i]));
+			tenors.push_back(in_tenor[i]);
+			swapCouponFrequencies.push_back(quantoSauros::util::Frequency(new_swapCouponFrequency[i]));
+
+			quantoSauros::ReferenceType referenceType = quantoSauros::util::ReferenceType(new_referenceType[i]);
+
+			quantoSauros::NoteLegRangeCouponInfo* couponInfo;
+			if (referenceType == quantoSauros::Spot){
+				couponInfo = new quantoSauros::NoteLegSpotRangeCouponInfo(
+					rateTypes[i], tenors[i], swapCouponFrequencies[i], irCurve, 
+					inCouponRates, outCouponRates, 
+					rangeUpperRates, rangeLowerRates);
+			} else if (referenceType == quantoSauros::Spread){
+				//TODO
+				couponInfo = new quantoSauros::NoteLegSpotRangeCouponInfo(
+					rateTypes[i], tenors[i], swapCouponFrequencies[i], irCurve, 
+					inCouponRates, outCouponRates, 
+					rangeUpperRates, rangeLowerRates);
+			}
+
+			couponInfos.push_back(couponInfo);
+		}
 
 		double executiveAccruedCoupon = 0;
 		quantoSauros::NoteLegDataInfo* dataInfo = new
-			quantoSauros::NoteLegDataInfo(executiveAccruedCoupon, monitorFrequency);
+			quantoSauros::NoteLegDataInfo(executiveAccruedCoupon, in_monitorFrequency);
 
 		quantoSauros::NoteLegOptionInfo* optionInfo = new
 			quantoSauros::NoteLegOptionInfo(optionType);
@@ -229,10 +234,13 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 			quantoSauros::HullWhiteParameters(meanReversion, sigma);
 		
 		std::vector<quantoSauros::IRInfo> irInfos;
-		irInfos.push_back(quantoSauros::IRInfo(irCurve, volSurfaces, floatParam));
+		for (int i = 0; i < referenceN; i++){
+			irInfos.push_back(quantoSauros::IRInfo(irCurve, volSurfaces, floatParam, 
+				rateTypes[i] ,tenors[i], swapCouponFrequencies[i]));
+		}	
 		
 		quantoSauros::IRInfo discountInfo = 
-			quantoSauros::IRInfo(irCurve, volSurfaces, discountParam);
+			quantoSauros::IRInfo(discountCurve, volSurfaces, discountParam);
 
 		QuantLib::Matrix correlationMatrix(2,2);		
 		correlationMatrix[0][0] = 1.0;
@@ -251,13 +259,13 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 			);
 
 		//getPrice Method of a Range Accrual Note
+		
 		QuantLib::Money raPrice = raNote.getPrice(
 			todayDate, 
 			irInfos, discountInfo,
-			simulationNum);
-	#pragma endregion
+			in_simulationNum);
 		
-		//price = (double)raPrice.value();
+	#pragma endregion
 
 		//MCLongstaffSchwartzEngineTest LONGSTAFFTEST;
 		//LONGSTAFFTEST.testAmericanMaxOption();

@@ -53,10 +53,17 @@ namespace quantoSauros {
 			m_maturityDate = scheduleInfo->getMaturityDate();
 			m_dcf = scheduleInfo->getDayCounter();
 			m_includePrincipal = amortizationInfo->getIncludePrincipal();
-
 			
-			m_floatCurveTenor1 = couponInfos[0]->getTenor1();
-			m_swapCouponFrequency = couponInfos[0]->getSwapCouponFrequency1();
+			for (int i = 0; i <couponInfos.size(); i++){
+				if (couponInfos[i]->getClassName() == "NoteLegSpreadRangeCouponInfo"){
+					//TODO
+				} else if (couponInfos[i]->getClassName() == "NoteLegSpotRangeCouponInfo"){
+					m_rateTypes.push_back(couponInfos[i]->getRateType1());
+					m_floatCurveTenors.push_back(couponInfos[i]->getTenor1());
+					m_swapCouponFrequencies.push_back(couponInfos[i]->getSwapCouponFrequency1());
+				}				
+			}
+
 			m_inCouponRates = couponInfos[0]->getInCouponRates();
 			m_outCouponRates = couponInfos[0]->getOutCouponRates();
 
@@ -84,94 +91,81 @@ namespace quantoSauros {
 			//typedef PathGenerator<rsg_type>::sample_type sample_type;
 			typedef MultiPathGenerator<rsg_type>::sample_type sample_type;
 			
-			HullWhiteParameters params = irInfos[0].getHullWhiteParams();
-			HullWhiteParameters discountParams = discountInfo.getHullWhiteParams(); 
-			double t = m_dcf.yearFraction(today, m_maturityDate);
-			
-			quantoSauros::InterestRateCurve floatCurve1 = irInfos[0].getInterestRateCurve();
-			quantoSauros::InterestRateCurve discountCurve = discountInfo.getInterestRateCurve();
+			//데이터 정리
+			m_simulationNum = simulationNum;
+			m_periodNum = m_rangePeriods.size();
+			m_today = today;
 
-			Handle<YieldTermStructure> floatTermStructure(floatCurve1.getInterestRateCurve());
+			int irNum = irInfos.size();
+			
+			std::vector<HullWhiteParameters> IRParams(irNum);
+			std::vector<quantoSauros::InterestRateCurve> floatCurves(irNum);
+			std::vector<Handle<YieldTermStructure>> floatTermStructure(irNum);
+			for (int i = 0; i < irNum; i++){
+				IRParams[i] = irInfos[i].getHullWhiteParams();
+				floatCurves[i] = irInfos[i].getInterestRateCurve();
+				floatTermStructure[i] = Handle<YieldTermStructure>(
+					floatCurves[i].getInterestRateCurve());
+			}
+			HullWhiteParameters discountParams = discountInfo.getHullWhiteParams(); 
+			quantoSauros::InterestRateCurve discountCurve = discountInfo.getInterestRateCurve();
 			Handle<YieldTermStructure> discountTermStructure(discountCurve.getInterestRateCurve());
 
 			//dividing Range Periods
-			int sizeOfRangePeriod = m_rangePeriods.size();
-			int idx = 0;
-			while(today - m_rangePeriods[idx].getEndDate() >= 0){
-				if (idx == sizeOfRangePeriod - 1){
-					break;
-				}
-				idx++;
-			}
-			m_rangePeriods.erase(m_rangePeriods.begin(), m_rangePeriods.begin() + idx);
-			m_rangeLowerRates.erase(m_rangeLowerRates.begin(), m_rangeLowerRates.begin() + idx);
-			m_rangeUpperRates.erase(m_rangeUpperRates.begin(), m_rangeUpperRates.begin() + idx);
-			m_inCouponRates.erase(m_inCouponRates.begin(), m_inCouponRates.begin() + idx);
-			m_outCouponRates.erase(m_outCouponRates.begin(), m_outCouponRates.begin() + idx);
-			
-			double periodTenor = m_rangePeriods[0].getPeriodTenor(m_dcf);
-			
+			DividingPeriods();
+						
+			double periodTenor = m_rangePeriods[0].getPeriodTenor(m_dcf);			
 			QuantLib::Size timeGridSize = ceil(periodTenor / ((double)m_monitorFrequency / 360));
-			int periodLength = m_rangePeriods.size();
-			
+
 			//Range 별 seed 생성
-			srand(time(NULL));
-			if (m_seeds.size() == 0){
-				for (int i = 0; i < simulationNum; i++){
-					std::vector<BigNatural> seed;
-					for (int j = 0; j < periodLength; j++){
-						seed.push_back(BigNatural(rand()));
-					}
-					m_seeds.push_back(seed);
-				}
-			}
+			generateSeeds();
+
 			//initial 변수 선언
-			Real x0ForReference = 0;
-			Real x0ForDiscount = 0;
+			std::vector<Real> x0ForIRProcess(irNum);			
+			Real x0ForDiscountProcess = 0;
+
 			//payoff 저장 함수 선언
-			std::vector<std::vector<double>> payoffs(periodLength + 1);
-			std::vector<std::vector<double>> coupons(simulationNum);
-			std::vector<std::vector<double>> dfs(simulationNum);
+			std::vector<std::vector<double>> payoffs(m_periodNum + 1);
+			std::vector<std::vector<double>> coupons(m_simulationNum);
+			std::vector<std::vector<double>> dfs(m_simulationNum);
 
 			//Calculating module
-			for (int simIndex = 0; simIndex < simulationNum; simIndex++){
+			for (int simIndex = 0; simIndex < m_simulationNum; simIndex++){
 				//data 저장
-				std::vector<double> coupon(periodLength);
-				std::vector<double> df(periodLength);
+				std::vector<double> coupon(m_periodNum);
+				std::vector<double> df(m_periodNum);
 
-				for (int periodIndex = 0; periodIndex < periodLength; periodIndex++){				
+				for (int periodIndex = 0; periodIndex < m_periodNum; periodIndex++){				
 					quantoSauros::Period period = m_rangePeriods[periodIndex];
 					QuantLib::Time startTenor = std::max(
-						(double) m_dcf.yearFraction(today, period.getStartDate()), 0.0);
+						(double) m_dcf.yearFraction(m_today, period.getStartDate()), 0.0);
 					QuantLib::Time periodTenor = period.getPeriodTenor(m_dcf);
 
 					//1. process				
-					std::vector<boost::shared_ptr<StochasticProcess1D>> processes(2);
+					std::vector<boost::shared_ptr<StochasticProcess1D>> processes(irNum + 1);
 					boost::shared_ptr<StochasticProcess> process;
-					boost::shared_ptr<HullWhiteProcess> referenceProcess(
-						new HullWhiteProcess(floatTermStructure, 
-							params.getMeanReversion1F(), params.getVolatility1F()));
+					std::vector<boost::shared_ptr<HullWhiteProcess>> IRProcess(irNum);
+					for (int i = 0; i < irNum; i++){
+						IRProcess[i] = boost::shared_ptr<HullWhiteProcess>(
+							new HullWhiteProcess(floatTermStructure[i], 
+							IRParams[i].getMeanReversion1F(), IRParams[i].getVolatility1F()));
+						processes[i] = boost::shared_ptr<StochasticProcess1D>(IRProcess[i]);
+					}
 					boost::shared_ptr<HullWhiteProcess> discountProcess(
 						new HullWhiteProcess(discountTermStructure, 
 						discountParams.getMeanReversion1F(), discountParams.getVolatility1F()));
-					processes[0] = boost::shared_ptr<StochasticProcess1D>(referenceProcess);
-					processes[1] = boost::shared_ptr<StochasticProcess1D>(discountProcess);
-/*
-					boost::shared_ptr<HullWhiteProcess> processForReference(
-						new HullWhiteProcess(floatTermStructure, meanReversion, sigma));
-					boost::shared_ptr<HullWhiteProcess> processForDiscount(
-						new HullWhiteProcess(discountTermStructure, discountMeanReversion, discountSigma));
-*/				
+					processes[irNum] = boost::shared_ptr<StochasticProcess1D>(discountProcess);
+
 					//set the initialized short rate value into the process
 					if (periodIndex != 0){
-						//processes[0]->setX0(x0ForReference);
-						//processes[1]->setX0(x0ForDiscount);
-						referenceProcess->setX0(x0ForReference);
-						discountProcess->setX0(x0ForDiscount);
+						for (int i = 0; i < irNum; i++){
+							IRProcess[i]->setX0(x0ForIRProcess[i]);
+						}						
+						discountProcess->setX0(x0ForDiscountProcess);
 					}
 
 					process = boost::shared_ptr<StochasticProcess>(
-                           new StochasticProcessArray(processes,m_correlationMatrix));
+                           new StochasticProcessArray(processes, m_correlationMatrix));
 					
 					//2. timeGrid
 					//TODO timeGrid에 exercise Date 추가
@@ -180,36 +174,79 @@ namespace quantoSauros {
 					//3. path Generator
 					rsg_type rsg = PseudoRandom::make_sequence_generator(
 						timeGridSize * process->size(), m_seeds[simIndex][periodIndex]);
-								
-					//PathGenerator<rsg_type> generator(processForReference, timeGrid, rsg, false);
 					MultiPathGenerator<rsg_type> generator(process, timeGrid, rsg, false);
-					sample_type path1 = generator.next();
-					HullWhite hullWhite(floatTermStructure, 
-						params.getMeanReversion1F(), params.getVolatility1F());
+					sample_type path = generator.next();
 
 					int accruedDays = 0;
 					double cumulatedDF = 1;
-					for (Size j = 0; j < timeGrid.size(); j++){
+					double dt = timeGrid.dt(0);
+
+					for (Size timeIndex = 0; timeIndex < timeGrid.size() - 1; timeIndex++){
 						//4.1. Calculate the reference Rate
-						QuantLib::Time tenor = m_floatCurveTenor1;
-						QuantLib::Time start = timeGrid[j] + startTenor;
-						Real referenceRate = - log(
-							hullWhite.discountBond(start, start + tenor, path1.value[0][j])) / tenor;
-				
+						QuantLib::Time start = timeGrid[timeIndex] + startTenor;
+
+						std::vector<Real> referenceRates(irNum);
+						for (int i = 0; i < irNum; i++){							
+							double end = 0;
+							double vol = 0;
+							double bondPrice = 0;
+							double bondPriceSum = 0;
+							QuantLib::Time tenor = m_floatCurveTenors[i];
+
+							quantoSauros::RateType type = m_rateTypes[i];
+							if (type == quantoSauros::RateType::DepositRate){								
+								end = start + tenor;
+								vol = IRParams[i].getVolatility1F();
+								QuantLib::HullWhite hullWhite(floatTermStructure[i], 
+									IRParams[i].getMeanReversion1F(), vol);
+								bondPrice = hullWhite.discountBond(start, end, path.value[i][timeIndex]);
+								referenceRates[i] = - log(bondPrice) / tenor;
+							} else if (type == quantoSauros::RateType::SwapRate){								
+								//QuantLib::Frequency swapCouponFrequency = m_swapCouponFrequencies[i];
+								double swapTenor = 1 / m_swapCouponFrequencies[i];
+								int swapRateNum = tenor / swapTenor;
+								for (int j = 0; j < swapRateNum; j++){
+									double tmpTenor = swapTenor * (j + 1);
+									end = start + tmpTenor;
+									vol = IRParams[i].getVolatility1F();
+									QuantLib::HullWhite hullWhite(floatTermStructure[i], 
+										IRParams[i].getMeanReversion1F(), vol);
+									bondPrice = hullWhite.discountBond(start, end, path.value[i][timeIndex]);
+									bondPriceSum += bondPrice * swapTenor;
+								}								
+								referenceRates[i] = (1 - bondPrice) / bondPriceSum;
+							}
+							
+						}
+
 						//4.2. Calculate the accrual Days
 						double lowerRate = m_rangeLowerRates[periodIndex];
 						double upperRate = m_rangeUpperRates[periodIndex];
-						if (referenceRate >= lowerRate && referenceRate <= upperRate) {
-							accruedDays++;
+						if (irNum == 1){
+							if (referenceRates[0] >= lowerRate && referenceRates[0] <= upperRate) {								
+								accruedDays++;
+							}
+						} else if (irNum == 2){
+							if (referenceRates[0] >= lowerRate && referenceRates[0] <= upperRate) {
+								if (referenceRates[1] >= lowerRate && referenceRates[1] <= upperRate) {
+									accruedDays++;
+								}
+							}
 						}
+
 						//4.3. Calculate the discount Rate
-						double dfRates = path1.value[1][j];
-						cumulatedDF *= exp(- dfRates * timeGrid.dt(0));
+						double shortRate = path.value[0][timeIndex];
+						double dfRate = path.value[irNum][timeIndex];
+						cumulatedDF *= exp(- dfRate * timeGrid.dt(timeIndex));
 					}
 					//initialize the short rate value
-					x0ForReference = path1.value[0][timeGrid.size() - 1];
-					x0ForDiscount = path1.value[1][timeGrid.size() - 1];
-					coupon[periodIndex] = accruedDays * m_inCouponRates[periodIndex] * timeGrid.dt(0);
+					for (int i = 0; i < irNum; i++){
+						x0ForIRProcess[i] = path.value[i][timeGrid.size() - 1];
+					}					
+					x0ForDiscountProcess = path.value[irNum][timeGrid.size() - 1];
+					//calculate coupon amount
+					coupon[periodIndex] = accruedDays * m_inCouponRates[periodIndex] * dt;
+					//save the calculated discount factor
 					df[periodIndex] = cumulatedDF;
 				}
 				coupons[simIndex] = coupon;
@@ -217,20 +254,21 @@ namespace quantoSauros {
 			}
 
 			//calculate price	
-			std::vector<double> notional(simulationNum);
-			for (int simIndex = 0; simIndex < simulationNum; simIndex++){
-				
+			//1. set a notional into the payoffs
+			std::vector<double> notional(m_simulationNum);
+			for (int simIndex = 0; simIndex < m_simulationNum; simIndex++){				
 				notional[simIndex] = 1;
 			}
-			payoffs[periodLength] = notional;
+			payoffs[m_periodNum] = notional;
 
-			for (int periodIndex = periodLength - 1; periodIndex >= 0; periodIndex--){
+			//2. calculate payoffs by the backward method
+			for (int periodIndex = m_periodNum - 1; periodIndex >= 0; periodIndex--){
 				
-				std::vector<double> payoff(simulationNum);
+				std::vector<double> payoff(m_simulationNum);
 				bool hasExercise = m_rangePeriods[periodIndex].hasExercise();
 				double exercisePrice = m_rangePeriods[periodIndex].getExercisePrice();
 				
-				for (int simIndex = 0; simIndex < simulationNum; simIndex++){				
+				for (int simIndex = 0; simIndex < m_simulationNum; simIndex++){				
 					double previousPayoff = payoffs[periodIndex + 1][simIndex];
 					double coupon = coupons[simIndex][periodIndex];
 					double df = dfs[simIndex][periodIndex];
@@ -247,14 +285,45 @@ namespace quantoSauros {
 				payoffs[periodIndex] = payoff;
 			}
 
+			//3. calculate the current value
 			double value = 0;
-			for (int simIndex = 0; simIndex < simulationNum; simIndex++){
+			for (int simIndex = 0; simIndex < m_simulationNum; simIndex++){
 				value += payoffs[0][simIndex];
 			}		
 		
-			return Money(m_notional.currency(), value / simulationNum);
+			return Money(m_notional.currency(), value / m_simulationNum);
 	}
 
 	RangeAccrualNote::~RangeAccrualNote(void){
 	}
+
+	void RangeAccrualNote::DividingPeriods(){
+		int sizeOfRangePeriod = m_rangePeriods.size();
+		int idx = 0;
+		while(m_today - m_rangePeriods[idx].getEndDate() >= 0){
+			if (idx == sizeOfRangePeriod - 1){
+				break;
+			}
+			idx++;
+		}
+		m_rangePeriods.erase(m_rangePeriods.begin(), m_rangePeriods.begin() + idx);
+		m_rangeLowerRates.erase(m_rangeLowerRates.begin(), m_rangeLowerRates.begin() + idx);
+		m_rangeUpperRates.erase(m_rangeUpperRates.begin(), m_rangeUpperRates.begin() + idx);
+		m_inCouponRates.erase(m_inCouponRates.begin(), m_inCouponRates.begin() + idx);
+		m_outCouponRates.erase(m_outCouponRates.begin(), m_outCouponRates.begin() + idx);
+	}	
+
+	void RangeAccrualNote::generateSeeds(){
+		srand(time(NULL));
+		if (m_seeds.size() == 0){
+			for (int i = 0; i < m_simulationNum; i++){
+				std::vector<BigNatural> seed;
+				for (int j = 0; j < m_periodNum; j++){
+					seed.push_back(BigNatural(rand()));
+				}
+				m_seeds.push_back(seed);
+			}
+		}
+	}
+
 }

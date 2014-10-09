@@ -48,6 +48,11 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 	SAFEARRAY** rangeStartDays, SAFEARRAY** rangeEndDays, 
 	SAFEARRAY** callFlags, 
 	SAFEARRAY** in_issueDate, SAFEARRAY** in_maturityDate,
+	//금리정보
+	long referenceN, SAFEARRAY** in_referenceType, 
+	SAFEARRAY** in_rateType, double* in_tenor, SAFEARRAY** swapCouponFrequency,
+	//기타정보
+	long in_monitorFrequency, long in_simulationNum,
 	//결과
 	double* price);
 

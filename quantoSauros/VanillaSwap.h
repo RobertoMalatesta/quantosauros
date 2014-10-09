@@ -1,34 +1,36 @@
 #pragma once
 #include <ql/quantlib.hpp>
-using namespace QuantLib;
+//using namespace QuantLib;
 
 namespace quantoSauros {
 
 	class vanillaSwap
 	{
 	public:
-		vanillaSwap(
+		quantoSauros::vanillaSwap(
 			//for common
-			VanillaSwap::Type type, Real nominal,			
-			Date swapStartDate, Date swapEndDate,
+			QuantLib::VanillaSwap::Type type, QuantLib::Real nominal,			
+			QuantLib::Date swapStartDate, QuantLib::Date swapEndDate,
 			//for Fixed Leg
 			//fixed Schedule
-			Frequency swapFixedFrequency, BusinessDayConvention swapFixedConvention, 
-			Real fixedRate, DayCounter fixedDayCounter,
+			QuantLib::Frequency swapFixedFrequency, 
+			QuantLib::BusinessDayConvention swapFixedConvention, 
+			QuantLib::Real fixedRate, QuantLib::DayCounter fixedDayCounter,
 			//for Floating Leg
 			//floating Schedule
-			Frequency swapFloatingFrequency, BusinessDayConvention swapFloatingConvention,
-			boost::shared_ptr<IborIndex> iborIndex, Real spread
+			QuantLib::Frequency swapFloatingFrequency, 
+			QuantLib::BusinessDayConvention swapFloatingConvention,
+			boost::shared_ptr<QuantLib::IborIndex> iborIndex, QuantLib::Real spread
 			);
 
-		void setEngine(boost::shared_ptr<PricingEngine> engine);
-		Real getFixedLegNPV();
-		Real getFloatingLegNPV();
-		Real getNPV();
-		Real getFairRate(boost::shared_ptr<YieldTermStructure> termStructure);
+		void setEngine(boost::shared_ptr<QuantLib::PricingEngine> engine);
+		QuantLib::Real getFixedLegNPV();
+		QuantLib::Real getFloatingLegNPV();
+		QuantLib::Real getNPV();
+		QuantLib::Real getFairRate(boost::shared_ptr<QuantLib::YieldTermStructure> termStructure);
 		~vanillaSwap(void);
 	private:
-		Calendar m_calendar;
-		VanillaSwap *m_swap;
+		QuantLib::Calendar m_calendar;
+		QuantLib::VanillaSwap *m_swap;
 	};
 }

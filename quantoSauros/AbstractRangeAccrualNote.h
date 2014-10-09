@@ -36,9 +36,10 @@ namespace quantoSauros {
 		QuantLib::Date m_maturityDate;
 		QuantLib::DayCounter m_dcf;
 		bool m_includePrincipal;
-		//기준금리1 정보
-		double m_floatCurveTenor1;
-		QuantLib::Frequency m_swapCouponFrequency;
+		//기준금리 정보
+		std::vector<quantoSauros::RateType> m_rateTypes;
+		std::vector<double> m_floatCurveTenors;
+		std::vector<QuantLib::Frequency> m_swapCouponFrequencies;
 		//Range 구간 정보
 		std::vector<double> m_inCouponRates;
 		std::vector<double> m_outCouponRates;
@@ -53,6 +54,8 @@ namespace quantoSauros {
 		int m_monitorFrequency;
 		double m_accruedCoupon;
 		QuantLib::Matrix m_correlationMatrix;
+		int m_simulationNum;
+		int m_periodNum;
 
 		//seed
 		std::vector<std::vector<BigNatural>> m_seeds;

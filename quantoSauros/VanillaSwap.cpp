@@ -4,46 +4,56 @@ namespace quantoSauros {
 
 	vanillaSwap::vanillaSwap(
 		//for common
-		VanillaSwap::Type type, Real nominal,			
-		Date swapStartDate, Date swapEndDate,
+		QuantLib::VanillaSwap::Type type, QuantLib::Real nominal,			
+		QuantLib::Date swapStartDate, QuantLib::Date swapEndDate,
 		//for Fixed Leg
 		//fixed Schedule
-		Frequency swapFixedFrequency, BusinessDayConvention swapFixedConvention, 
-		Real fixedRate, DayCounter fixedDayCounter,
+		QuantLib::Frequency swapFixedFrequency, 
+		QuantLib::BusinessDayConvention swapFixedConvention, 
+		QuantLib::Real fixedRate, QuantLib::DayCounter fixedDayCounter,
 		//for Floating Leg
 		//floating Schedule
-		Frequency swapFloatingFrequency, BusinessDayConvention swapFloatingConvention,
-		boost::shared_ptr<IborIndex> iborIndex, Real spread
+		QuantLib::Frequency swapFloatingFrequency, 
+		QuantLib::BusinessDayConvention swapFloatingConvention,
+		boost::shared_ptr<QuantLib::IborIndex> iborIndex, QuantLib::Real spread
 		)
 	{
 		m_calendar = iborIndex->fixingCalendar();
 
-		Schedule fixedSchedule(swapStartDate, swapEndDate, Period(swapFixedFrequency),
-			m_calendar, swapFixedConvention, swapFixedConvention, DateGeneration::Forward, false);
+		QuantLib::Schedule fixedSchedule(swapStartDate, swapEndDate,
+			QuantLib::Period(swapFixedFrequency),
+			m_calendar, swapFixedConvention, swapFixedConvention,
+			QuantLib::DateGeneration::Forward, false);
 
-		Schedule floatSchedule(swapStartDate, swapEndDate, Period(swapFloatingFrequency),
-			m_calendar, swapFloatingConvention, swapFloatingConvention, DateGeneration::Forward, false);
+		QuantLib::Schedule floatSchedule(swapStartDate, swapEndDate, 
+			QuantLib::Period(swapFloatingFrequency),
+			m_calendar, swapFloatingConvention, swapFloatingConvention, 
+			QuantLib::DateGeneration::Forward, false);
 
-		m_swap = new VanillaSwap(type, nominal, fixedSchedule, fixedRate, fixedDayCounter,
-			floatSchedule, iborIndex, spread, iborIndex->dayCounter());
+		m_swap = new QuantLib::VanillaSwap(
+			type, nominal, fixedSchedule, fixedRate, fixedDayCounter,
+			floatSchedule, iborIndex, spread, iborIndex->dayCounter()
+			);
 
 	}
-	void vanillaSwap::setEngine(boost::shared_ptr<PricingEngine> engine){
+	void vanillaSwap::setEngine(boost::shared_ptr<QuantLib::PricingEngine> engine){
 		m_swap->setPricingEngine(engine);
 	}
-	Real vanillaSwap::getFixedLegNPV(){
+	QuantLib::Real vanillaSwap::getFixedLegNPV(){
 		return m_swap->fixedLegNPV();
 	}
-	Real vanillaSwap::getFloatingLegNPV(){		
+	QuantLib::Real vanillaSwap::getFloatingLegNPV(){		
 		return m_swap->floatingLegNPV();
 	}
-	Real vanillaSwap::getNPV(){		
+	QuantLib::Real vanillaSwap::getNPV(){		
 		return m_swap->NPV();
 	}
-	Real vanillaSwap::getFairRate(boost::shared_ptr<YieldTermStructure> termStructure){
-		RelinkableHandle<YieldTermStructure> discountingTermStructure;
-		boost::shared_ptr<PricingEngine> swapEngine(
-							 new DiscountingSwapEngine(discountingTermStructure));
+	QuantLib::Real vanillaSwap::getFairRate(
+		boost::shared_ptr<QuantLib::YieldTermStructure> termStructure
+		){
+		QuantLib::RelinkableHandle<QuantLib::YieldTermStructure> discountingTermStructure;
+		boost::shared_ptr<QuantLib::PricingEngine> swapEngine(
+							 new QuantLib::DiscountingSwapEngine(discountingTermStructure));
 		m_swap->setPricingEngine(swapEngine);
 		discountingTermStructure.linkTo(termStructure);
 		return m_swap->fairRate();

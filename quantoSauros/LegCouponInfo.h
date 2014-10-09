@@ -4,6 +4,8 @@
 #include "InterestRate.h"
 #include "Period.h"
 #include "InterestRateCurve.h"
+#include "IRInfo.h"
+
 #include <ql/quantlib.hpp>
 
 namespace quantoSauros{
@@ -13,6 +15,11 @@ namespace quantoSauros{
 	class NoteLegCouponInfo : public AbstractLegCouponInfo {
 		public:
 			NoteLegCouponInfo(){}
+			std::string getClassName(){
+				return m_className;
+			};
+	protected:			
+			std::string m_className;
 	};
 
 	//Range Coupon Info
@@ -21,13 +28,12 @@ namespace quantoSauros{
 			quantoSauros::RateType getRateType1();
 			double getTenor1();
 			QuantLib::Frequency getSwapCouponFrequency1();
-			quantoSauros::InterestRateCurve getReferenceRateCurve1();
-			
+			quantoSauros::InterestRateCurve getReferenceRateCurve1();		
+
 			std::vector<double> getUpperBounds();
 			std::vector<double> getLowerBounds();
 			std::vector<double> getInCouponRates();
-			std::vector<double> getOutCouponRates();
-
+			std::vector<double> getOutCouponRates();			
 		protected:	
 			//기초자산1 유형
 			quantoSauros::RateType m_rateType1;
@@ -37,6 +43,9 @@ namespace quantoSauros{
 			QuantLib::Frequency m_swapCouponFrequency1;
 			//기초자산1 금리커브
 			quantoSauros::InterestRateCurve m_referenceRateCurve1;
+			//기초자산금리 정보
+			std::vector<quantoSauros::IRInfo> m_irInfos;
+
 			//Range Accrual In-Coupon 이자율
 			std::vector<double> m_inCouponRates;
 			//Range Accrual Out-Coupon 이자율
@@ -71,6 +80,7 @@ namespace quantoSauros{
 					m_outCouponRates = outCouponRates;
 					m_upperBounds = upperBounds;
 					m_lowerBounds = lowerBounds;
+					m_className = "NoteLegSpreadRangeCouponInfo";
 			}
 
 			quantoSauros::RateType getRateType2();
@@ -106,7 +116,9 @@ namespace quantoSauros{
 					m_outCouponRates = outCouponRates;
 					m_upperBounds = upperBounds;
 					m_lowerBounds = lowerBounds;
+					m_className = "NoteLegSpotRangeCouponInfo";
 			}
+
 		private:
 
 	};

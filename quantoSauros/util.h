@@ -3,11 +3,17 @@
 #include <atlstr.h>
 #include <OleAuto.h>
 
+#include "InterestRate.h";
 #include "Tenor.h";
 
-using namespace QuantLib;
+//using namespace QuantLib;
 
 namespace quantoSauros{
+
+	enum ReferenceType
+	{
+		Spot, Spread
+	};
 
 	class util
 	{
@@ -15,7 +21,11 @@ namespace quantoSauros{
 		static CString* util::conversion(SAFEARRAY** safeArray);
 		static QuantLib::Currency util::Currency(CString str);
 		static QuantLib::DayCounter util::DayCounter(CString str);
-
+		static bool util::TrueOrFalse(CString str);
+		static QuantLib::Date util::Date(CString str);
+		static quantoSauros::RateType util::RateType(CString str);
+		static QuantLib::Frequency util::Frequency(CString str);
+		static quantoSauros::ReferenceType util::ReferenceType(CString str);
 	};	
 
 	inline CString* util::conversion(SAFEARRAY** safeArray){
@@ -57,22 +67,22 @@ namespace quantoSauros{
 		QuantLib::Currency currency;
 		//western
 		if (str == "USD"){
-			currency = USDCurrency();
+			currency = QuantLib::USDCurrency();
 		} else if (str == "EUR"){
-			currency == EURCurrency();
+			currency == QuantLib::EURCurrency();
 		} else if (str == "GBP") {
-			currency == GBPCurrency();		
+			currency == QuantLib::GBPCurrency();		
 		//asia
 		} else if (str == "KRW"){
-			currency = KRWCurrency();
+			currency = QuantLib::KRWCurrency();
 		} else if (str == "HKD"){
-			currency == HKDCurrency();
+			currency == QuantLib::HKDCurrency();
 		} else if (str == "JPY"){
-			currency == JPYCurrency();
+			currency == QuantLib::JPYCurrency();
 		} else if (str == "CNY"){
-			currency == CNYCurrency();
+			currency == QuantLib::CNYCurrency();
 		} else if (str == "SGD"){
-			currency == SGDCurrency();
+			currency == QuantLib::SGDCurrency();
 		}
 
 		return currency;
@@ -81,18 +91,80 @@ namespace quantoSauros{
 	inline QuantLib::DayCounter util::DayCounter(CString str){
 		QuantLib::DayCounter dcf;
 		if (str == "ACT365"){
-			dcf = Actual365Fixed();
+			dcf = QuantLib::Actual365Fixed();
 		} else if (str == "ACT360"){
-			dcf = Actual360();
+			dcf = QuantLib::Actual360();
 		} else if (str == "ACTACT"){
-			dcf = ActualActual();
+			dcf = QuantLib::ActualActual();
 		} else {
-			dcf = Actual360();
+			dcf = QuantLib::Actual360();
 		}
 
 		return dcf;
 	}
-	//TODO date
+	
+	inline bool util::TrueOrFalse(CString str){
+		bool result;
+		if (str == "True"){
+			result = true;
+		} else if (str == "False"){
+			result = false;
+		} else {
+			result = NULL;
+		}
+		return result;
+	}
+	
+	inline QuantLib::Date util::Date(CString str){
+		int StartYear = atoi(str.Left(4));
+		int StartMonth = atoi(str.Mid(5,2));
+		int StartDay = atoi(str.Right(2));
+
+		return QuantLib::Date(
+			QuantLib::Day(StartDay), QuantLib::Month(StartMonth), 
+			QuantLib::Year(StartYear));
+	}
+	
+	inline quantoSauros::RateType util::RateType(CString str){
+
+		quantoSauros::RateType result;
+		if (str == "Forward" || str == "Deposit"){
+			result = quantoSauros::DepositRate;
+		} else if (str == "Swap"){
+			result = quantoSauros::SwapRate;
+		} else {
+			result = quantoSauros::None;
+		}
+		return result;
+	}
+
+	inline QuantLib::Frequency util::Frequency(CString str){
+		QuantLib::Frequency result;
+		if (str =="Quarterly") {
+			result = Quarterly;
+		} else if (str == "Annually") {
+			result = Annual;
+		} else if (str == "Monthly") {
+			result = Monthly;
+		} else if (str == "Semianuual") {
+			result = Semiannual;
+		} else {
+			result = NoFrequency;
+		}
+		return result;
+	}
+
+	inline quantoSauros::ReferenceType util::ReferenceType(CString str){
+
+		quantoSauros::ReferenceType result;
+
+		if (str == "Spot"){
+			result = quantoSauros::Spot;
+		} else if (str == "Spread"){
+			result = quantoSauros::Spread;
+		}
+		return result;
+	}
 }
 
 
