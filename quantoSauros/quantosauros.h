@@ -27,12 +27,15 @@
 #include "LegScheduleInfo.h";
 #include "IRInfo.h";
 #include "CorrelationInfo.h";
+#include "marketmodel.h"
 //#include "test_libormarketmodel.h";
 //#include "test_libormarketmodelprocess.h";
 //#include "test_lowdiscrepancysequence.h";
 //#include "dtoRateMarketData.h";
 
 using namespace QuantLib;
+
+double QUANTOSAUROS_API __stdcall test1(SAFEARRAY** input);
 
 double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 	//금리정보

@@ -5,6 +5,7 @@ namespace quantoSauros {
 
 	class Period : public AbstractPeriod {
 	public:
+		Period(){}
 		Period(QuantLib::Date startDate, QuantLib::Date endDate)
 		{
 			m_startDate = startDate;

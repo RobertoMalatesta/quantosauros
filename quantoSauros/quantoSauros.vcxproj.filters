@@ -55,17 +55,44 @@
     <Filter Include="Source Files\Core\instruments\Swaps">
       <UniqueIdentifier>{8c737bb9-aa2e-4c00-9bd2-b1ae4073588e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Core\derivatives\LegInfo">
-      <UniqueIdentifier>{0b793498-eaaf-46dc-936a-fb5773c439fc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Core\derivatives\IRInfo">
-      <UniqueIdentifier>{19a2a700-55fb-45c7-9ec9-affb7515c266}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Core\derivatives\Models">
       <UniqueIdentifier>{ce7ff17d-b29f-490a-9238-925eaff5786d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Core\derivatives\Models\HullWhite1F">
       <UniqueIdentifier>{17997188-83d8-4921-8eaf-58e8c1b18f4f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\derivatives\Infos">
+      <UniqueIdentifier>{80ddf552-50df-4298-9184-31439d835eae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\derivatives\Infos\IRInfo">
+      <UniqueIdentifier>{19a2a700-55fb-45c7-9ec9-affb7515c266}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\derivatives\Infos\LegInfo">
+      <UniqueIdentifier>{0b793498-eaaf-46dc-936a-fb5773c439fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\derivatives\Pricers">
+      <UniqueIdentifier>{985c426e-0300-44cc-a209-ff46e6553097}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\derivatives">
+      <UniqueIdentifier>{b8d404f0-9581-4f43-8a11-cb615f8b7c21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\derivatives\Pricers">
+      <UniqueIdentifier>{4fbd0d80-1915-49a9-bfdb-ef1690c22b05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\derivatives\Arguments">
+      <UniqueIdentifier>{e3bbd130-cda1-48ee-85e9-294e6ec4f616}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\derivatives\Models">
+      <UniqueIdentifier>{d48d8c01-ae95-4622-ad59-9756009a0a5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\derivatives\Models\LSMC">
+      <UniqueIdentifier>{a5168eba-fc1f-403f-b2f2-bad74b7143c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\derivatives\Models\LSMC">
+      <UniqueIdentifier>{e22a7645-9e30-4f18-bdfe-3407248195c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\derivatives\Datas">
+      <UniqueIdentifier>{2170d963-fdb3-4bb3-a86a-a534899628b1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -130,22 +157,22 @@
       <Filter>Header Files\Test</Filter>
     </ClInclude>
     <ClInclude Include="AbstractLegInfo.h">
-      <Filter>Header Files\Core\derivatives\LegInfo</Filter>
+      <Filter>Header Files\Core\derivatives\Infos\LegInfo</Filter>
     </ClInclude>
     <ClInclude Include="LegCouponInfo.h">
-      <Filter>Header Files\Core\derivatives\LegInfo</Filter>
+      <Filter>Header Files\Core\derivatives\Infos\LegInfo</Filter>
     </ClInclude>
     <ClInclude Include="LegScheduleInfo.h">
-      <Filter>Header Files\Core\derivatives\LegInfo</Filter>
+      <Filter>Header Files\Core\derivatives\Infos\LegInfo</Filter>
     </ClInclude>
     <ClInclude Include="LegDataInfo.h">
-      <Filter>Header Files\Core\derivatives\LegInfo</Filter>
+      <Filter>Header Files\Core\derivatives\Infos\LegInfo</Filter>
     </ClInclude>
     <ClInclude Include="LegOptionInfo.h">
-      <Filter>Header Files\Core\derivatives\LegInfo</Filter>
+      <Filter>Header Files\Core\derivatives\Infos\LegInfo</Filter>
     </ClInclude>
     <ClInclude Include="LegAmortizationInfo.h">
-      <Filter>Header Files\Core\derivatives\LegInfo</Filter>
+      <Filter>Header Files\Core\derivatives\Infos\LegInfo</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
@@ -154,10 +181,34 @@
       <Filter>Header Files\Core\derivatives\Models\HullWhite1F</Filter>
     </ClInclude>
     <ClInclude Include="IRInfo.h">
-      <Filter>Header Files\Core\derivatives\IRInfo</Filter>
+      <Filter>Header Files\Core\derivatives\Infos\IRInfo</Filter>
     </ClInclude>
     <ClInclude Include="CorrelationInfo.h">
-      <Filter>Header Files\Core\derivatives\IRInfo</Filter>
+      <Filter>Header Files\Core\derivatives\Infos\IRInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="AbstractPricer.h">
+      <Filter>Header Files\Core\derivatives\Pricers</Filter>
+    </ClInclude>
+    <ClInclude Include="AccrualPricer.h">
+      <Filter>Header Files\Core\derivatives\Pricers</Filter>
+    </ClInclude>
+    <ClInclude Include="AbstractArguments.h">
+      <Filter>Header Files\Core\derivatives\Arguments</Filter>
+    </ClInclude>
+    <ClInclude Include="RangeAccrualArguments.h">
+      <Filter>Header Files\Core\derivatives\Arguments</Filter>
+    </ClInclude>
+    <ClInclude Include="LongstaffSchwartz.h">
+      <Filter>Header Files\Core\derivatives\Models\LSMC</Filter>
+    </ClInclude>
+    <ClInclude Include="marketmodel.h">
+      <Filter>Header Files\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="AbstractData.h">
+      <Filter>Header Files\Core\derivatives\Datas</Filter>
+    </ClInclude>
+    <ClInclude Include="RangeAccrualData.h">
+      <Filter>Header Files\Core\derivatives\Datas</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -206,6 +257,18 @@
       <Filter>Source Files\Test</Filter>
     </ClCompile>
     <ClCompile Include="mclongstaffschwartzengine.cpp">
+      <Filter>Source Files\Test</Filter>
+    </ClCompile>
+    <ClCompile Include="AccrualPricer.cpp">
+      <Filter>Source Files\Core\derivatives\Pricers</Filter>
+    </ClCompile>
+    <ClCompile Include="AbstractPricer.cpp">
+      <Filter>Source Files\Core\derivatives\Pricers</Filter>
+    </ClCompile>
+    <ClCompile Include="LongstaffSchwartz.cpp">
+      <Filter>Source Files\Core\derivatives\Models\LSMC</Filter>
+    </ClCompile>
+    <ClCompile Include="marketmodel.cpp">
       <Filter>Source Files\Test</Filter>
     </ClCompile>
   </ItemGroup>

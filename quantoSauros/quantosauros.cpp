@@ -19,12 +19,23 @@ namespace QuantLib {
 #endif
 #include "quantosauros.h";
 
+double QUANTOSAUROS_API __stdcall test1(SAFEARRAY** input){
+
+	CString* new_today = quantoSauros::util().conversion(input);
+
+	double a = 1;
+
+	a = a + 1;
+
+
+	return a;
+}
 
 double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** in_today,
 	//금리정보
-	long rateN, double* in_ytmRates, double* in_discountRates, SAFEARRAY** in_spotRatesTenor,
+	long in_rateN, double* in_ytmRates, double* in_discountRates, SAFEARRAY** in_spotRatesTenor,
 	//변동성정보
-	long volMaturityN, long volTenorN, double* in_volSurface, 
+	long in_volMaturityN, long in_volTenorN, double* in_volSurface, 
 	SAFEARRAY** in_volSurfaceMaturities, SAFEARRAY** in_volSurfaceTenors, 
 	//상품정보
 	SAFEARRAY** in_ccyCd, long in_NotionalAmount, SAFEARRAY** in_dcf,
@@ -42,7 +53,7 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** in_today,
 	//기타정보
 	long in_monitorFrequency, long in_simulationNum,
 	//결과
- 	double* price){
+ 	double* out_price){
 
 		//util class를 이용하여 input data의 type을 변환
 	#pragma region Convert the type of input data
@@ -68,7 +79,7 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** in_today,
 		std::vector<quantoSauros::InterestRate> interestRates;
 		std::vector<quantoSauros::InterestRate> discountRates;
 
-		int size = rateN;
+		int size = in_rateN;
 		for (int i = 0; i < size; i++){
 			quantoSauros::Tenor tenor = quantoSauros::Tenor(new_spotRatesTenorT[i]);
 			interestRates.push_back(quantoSauros::InterestRate(tenor, in_ytmRates[i]));
@@ -101,15 +112,15 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** in_today,
 		// Vol 셋팅		
 		std::vector<quantoSauros::VolatilityCurve> volCurves;
 
-		for (int tenorIndex = 0; tenorIndex < volTenorN; tenorIndex++){
+		for (int tenorIndex = 0; tenorIndex < in_volTenorN; tenorIndex++){
 		
 			quantoSauros::Tenor volTenor = quantoSauros::Tenor(new_volSurfaceTenorsT[tenorIndex]);
 			std::vector<quantoSauros::Volatility> vols;
 
-			for (int maturityIndex = 0; maturityIndex < volMaturityN; maturityIndex++){	
+			for (int maturityIndex = 0; maturityIndex < in_volMaturityN; maturityIndex++){	
 
 				quantoSauros::Tenor volMaturity = quantoSauros::Tenor(new_volSurfaceMaturitiesT[maturityIndex]);
-				double vol = in_volSurface[maturityIndex + tenorIndex * volTenorN];
+				double vol = in_volSurface[maturityIndex + tenorIndex * in_volTenorN];
 				//Time t = 0;
 				vols.push_back(quantoSauros::Volatility(volMaturity ,vol));
 			}
@@ -260,12 +271,22 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** in_today,
 
 		//getPrice Method of a Range Accrual Note
 		
+		QuantLib::Money result = raNote.getPrice(todayDate);
+
+		/*
 		QuantLib::Money raPrice = raNote.getPrice(
 			todayDate, 
 			irInfos, discountInfo,
 			in_simulationNum);
+			*/
+		QuantLib::Money raPrice(0, currency);
 		
 	#pragma endregion
+
+		MarketModelTest marketModelTest;
+
+		marketModelTest.testCallableSwapLS();
+
 
 		//MCLongstaffSchwartzEngineTest LONGSTAFFTEST;
 		//LONGSTAFFTEST.testAmericanMaxOption();

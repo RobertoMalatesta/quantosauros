@@ -76,6 +76,9 @@ namespace quantoSauros {
 			m_monitorFrequency = dataInfo->getMonitorFrequency();
 			m_accruedCoupon = dataInfo->getAccruedCoupon();
 			m_correlationMatrix = correlationInfo.getCorrelationMatrix();
+
+			m_args = quantoSauros::RangeAccrualArguments(scheduleInfo, 
+				amortizationInfo, couponInfos, dataInfo, optionInfo, irInfos, discountInfo, correlationInfo, 200);
 	}
 	QuantLib::Money RangeAccrualNote::getPrice(
 		//날짜정보
@@ -127,9 +130,9 @@ namespace quantoSauros {
 			//payoff 저장 함수 선언
 			std::vector<std::vector<double>> payoffs(m_periodNum + 1);
 			std::vector<std::vector<double>> coupons(m_simulationNum);
-			std::vector<std::vector<double>> dfs(m_simulationNum);
+			std::vector<std::vector<double>> dfs(m_simulationNum);			
 
-			//Calculating module
+			//Path Generating module
 			for (int simIndex = 0; simIndex < m_simulationNum; simIndex++){
 				//data 저장
 				std::vector<double> coupon(m_periodNum);
@@ -215,8 +218,7 @@ namespace quantoSauros {
 									bondPriceSum += bondPrice * swapTenor;
 								}								
 								referenceRates[i] = (1 - bondPrice) / bondPriceSum;
-							}
-							
+							}							
 						}
 
 						//4.2. Calculate the accrual Days
@@ -267,17 +269,15 @@ namespace quantoSauros {
 				std::vector<double> payoff(m_simulationNum);
 				bool hasExercise = m_rangePeriods[periodIndex].hasExercise();
 				double exercisePrice = m_rangePeriods[periodIndex].getExercisePrice();
-				
+				bool* LSMCCandidateFlags = new bool[simulationNum];
+
 				for (int simIndex = 0; simIndex < m_simulationNum; simIndex++){				
 					double previousPayoff = payoffs[periodIndex + 1][simIndex];
 					double coupon = coupons[simIndex][periodIndex];
 					double df = dfs[simIndex][periodIndex];
 					if (hasExercise){
-						if (previousPayoff < exercisePrice){
-							payoff[simIndex] = (previousPayoff + coupon) * df;
-						} else {
-							payoff[simIndex] = (exercisePrice + coupon) * df;
-						}
+						//Select LSMC Candidates
+						//if (
 					} else {
 						payoff[simIndex] = (previousPayoff + coupon) * df;
 					}
@@ -292,6 +292,15 @@ namespace quantoSauros {
 			}		
 		
 			return Money(m_notional.currency(), value / m_simulationNum);
+	}
+
+	QuantLib::Money RangeAccrualNote::getPrice(QuantLib::Date asOfDate){
+		m_args.setAsOfDate(asOfDate);
+		RangeAccrualPricer pricer(m_args);
+
+		pricer.calculate();
+
+		return pricer.getResults();
 	}
 
 	RangeAccrualNote::~RangeAccrualNote(void){

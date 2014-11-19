@@ -75,9 +75,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AbstractArguments.h" />
+    <ClInclude Include="AbstractData.h" />
     <ClInclude Include="AbstractLegInfo.h" />
     <ClInclude Include="AbstractPeriod.h" />
+    <ClInclude Include="AbstractPricer.h" />
     <ClInclude Include="AbstractRangeAccrualNote.h" />
+    <ClInclude Include="AccrualPricer.h" />
     <ClInclude Include="CorrelationInfo.h" />
     <ClInclude Include="HullWhiteParameters.h" />
     <ClInclude Include="InterestRate.h" />
@@ -88,11 +92,15 @@
     <ClInclude Include="LegDataInfo.h" />
     <ClInclude Include="LegOptionInfo.h" />
     <ClInclude Include="LegScheduleInfo.h" />
+    <ClInclude Include="LongstaffSchwartz.h" />
+    <ClInclude Include="marketmodel.h" />
     <ClInclude Include="mclongstaffschwartzengine.h" />
     <ClInclude Include="pathgenerator.h" />
     <ClInclude Include="PaymentPeriod.h" />
     <ClInclude Include="Period.h" />
     <ClInclude Include="quantosauros.h" />
+    <ClInclude Include="RangeAccrualArguments.h" />
+    <ClInclude Include="RangeAccrualData.h" />
     <ClInclude Include="RangeAccrualNote.h" />
     <ClInclude Include="RateMarketDate.h" />
     <ClInclude Include="resource.h" />
@@ -110,8 +118,12 @@
     <None Include="quantoSauros.def" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AbstractPricer.cpp" />
+    <ClCompile Include="AccrualPricer.cpp" />
     <ClCompile Include="InterestRate.cpp" />
     <ClCompile Include="InterestRateCurve.cpp" />
+    <ClCompile Include="LongstaffSchwartz.cpp" />
+    <ClCompile Include="marketmodel.cpp" />
     <ClCompile Include="mclongstaffschwartzengine.cpp" />
     <ClCompile Include="pathgenerator.cpp" />
     <ClCompile Include="quantosauros.cpp" />

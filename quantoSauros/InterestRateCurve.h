@@ -33,6 +33,7 @@ namespace quantoSauros{
 		double getZeroRate(QuantLib::Date d, DayCounter dcf, Compounding compound);
 	
 		double getForwardSwapRate(Period maturity, Period tenor);
+		double getForwardSwapRate(QuantLib::Date swapStartDate, QuantLib::Date swapEndDate);
 
 		boost::shared_ptr<YieldTermStructure> getInterestRateCurve();
 

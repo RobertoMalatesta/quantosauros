@@ -8,6 +8,7 @@ namespace quantoSauros{
 
 	class IRInfo {
 		public:
+			quantoSauros::IRInfo(){};
 			quantoSauros::IRInfo(
 				quantoSauros::InterestRateCurve interestRateCurve, 
 				quantoSauros::VolatilitySurface volatilitySurface,

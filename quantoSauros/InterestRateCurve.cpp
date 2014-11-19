@@ -134,6 +134,29 @@ namespace quantoSauros{
 
 		return fairRate;
 	}
+	double InterestRateCurve::getForwardSwapRate(QuantLib::Date swapStartDate, QuantLib::Date swapEndDate){
+		Frequency swapFixedLegFrequency = Quarterly;
+		BusinessDayConvention swapFixedLegConvention = ModifiedFollowing;
+		Frequency swapFloatingLegFrequency = Quarterly;
+		BusinessDayConvention swapFloatingLegConvention = ModifiedFollowing;
+
+		VanillaSwap::Type type = VanillaSwap::Payer;
+		Real nominal = 1;
+		Real fixedRate = 0.03;
+		DayCounter fixedDayCount = Actual365Fixed();
+		RelinkableHandle<YieldTermStructure> discountingTermStructure;	
+		boost::shared_ptr<IborIndex> iborIndex(new KRWibor3M(discountingTermStructure));
+		Real spread = 0;
+
+		quantoSauros::vanillaSwap tmpSwap = quantoSauros::vanillaSwap(type, 
+			nominal, swapStartDate, swapEndDate, swapFixedLegFrequency, swapFixedLegConvention,
+			fixedRate, fixedDayCount, swapFloatingLegFrequency, swapFloatingLegConvention, iborIndex, spread);
+		discountingTermStructure.linkTo(this->m_termStructure);
+
+		Real fairRate = tmpSwap.getFairRate(this->m_termStructure);
+
+		return fairRate;
+	}
 	#pragma endregion
 
 	boost::shared_ptr<YieldTermStructure> InterestRateCurve::getInterestRateCurve(){

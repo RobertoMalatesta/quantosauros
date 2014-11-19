@@ -2,6 +2,8 @@
 #include <ql/quantlib.hpp>
 #include <algorithm> 
 #include "AbstractRangeAccrualNote.h";
+#include "AccrualPricer.h";
+#include "RangeAccrualArguments.h";
 
 namespace quantoSauros {
 
@@ -44,12 +46,15 @@ namespace quantoSauros {
 			//±‚≈∏
 			int simulationNum
 			);
-		~RangeAccrualNote(void);
+		QuantLib::Money getPrice(QuantLib::Date asOfDate);
 
+		~RangeAccrualNote(void);
+		
 	private:
 		void DividingPeriods();
 		void generateSeeds();
 		
+		quantoSauros::RangeAccrualArguments m_args;
 	};
 }
 
