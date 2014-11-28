@@ -6,70 +6,67 @@ namespace quantoSauros{
 			Date asOfDate, std::vector<quantoSauros::InterestRate> interestRates,
 			Calendar calendar, Natural settlementDays,
 			DayCounter daycounter, Compounding compound){
+
 		this->m_today = asOfDate;
 		this->m_calendar = calendar;
 		this->m_settlementDate = calendar.advance(m_today, settlementDays, Days);
 		this->m_dcf = daycounter;
 		this->m_compoundingMethod = compound;	
 
-		std::vector<quantoSauros::InterestRate> swapRates;
-		std::vector<quantoSauros::InterestRate> depositRates;
+		std::vector<boost::shared_ptr<IborIndex>> depositIndices;
+		std::vector<QuantLib::Period> swapTenors;
+		//std::vector<boost::shared_ptr<IborIndex>> swapIndices;
 
-		for (int i = 0; i < interestRates.size(); i++){
+		std::vector<boost::shared_ptr<QuantLib::Quote>> depositRates;
+		std::vector<boost::shared_ptr<QuantLib::Quote>> swapRates;
+		
+		for (int i = 0; i < interestRates.size(); i++){			
 			quantoSauros::RateType type = interestRates[i].getRateType();
+			boost::shared_ptr<Quote> tmpRate(new SimpleQuote(interestRates[i].getRate()));
+
 			if (type == quantoSauros::RateType::DepositRate){
-				depositRates.push_back(interestRates[i]);
+				boost::shared_ptr<IborIndex> tmpPeriod(new KRWibor(interestRates[i].getPeriod()));
+				depositIndices.push_back(tmpPeriod);
+				depositRates.push_back(tmpRate);
 			} else if (type == quantoSauros::RateType::SwapRate){
-				swapRates.push_back(interestRates[i]);
+				swapTenors.push_back(interestRates[i].getPeriod());
+				//swapIndices.push_back(tmpPeriod);
+				swapRates.push_back(tmpRate);
 			}
 		}
 
 		m_depositeSize = depositRates.size();
 		m_swapSize = swapRates.size();
-	
+
 		//deposit 정보
-		DayCounter depositDcf = Actual365Fixed();
-		BusinessDayConvention depositConvention = ModifiedFollowing;
-		bool endOfMonthForDeposit = true;	
-
-		////측정일
-		//Date* termDate;
-		//termDate = new Date[m_depositeSize + m_swapSize];
-
+		//DayCounter depositDcf = Actual365Fixed();
+		//BusinessDayConvention depositConvention = ModifiedFollowing;
+		//bool endOfMonthForDeposit = true;	
 		std::vector<boost::shared_ptr<RateHelper>> tmpInstrument(m_depositeSize + m_swapSize);
+		
 		for (Size i = 0; i < m_depositeSize; i++) {
 			tmpInstrument[i] = boost::shared_ptr<RateHelper>(
-				new DepositRateHelper(depositRates[i].getRate(),
-					depositRates[i].getPeriod().length() * depositRates[i].getPeriod().units(),
-					settlementDays, calendar,
-					depositConvention, endOfMonthForDeposit,
-					depositDcf));
-			//termDate[i] = tmpInstrument[i]->latestDate();
+				new DepositRateHelper(QuantLib::Handle<Quote>(depositRates[i]), depositIndices[i]));
 		}
 	
 		//swap 정보
-		Frequency frequency = Annual;
-		BusinessDayConvention swapConvention = Unadjusted;
-		DayCounter swapDcf = Actual365Fixed();
-		//IborIndex id(KRWibor3M());
-
-		boost::shared_ptr<IborIndex> index(new KRWibor3M());
+		Frequency fixedFrequency = Quarterly;
+		BusinessDayConvention fixedConvention = ModifiedFollowing;
+		DayCounter fixedDayCount = Actual365Fixed();
+		boost::shared_ptr<IborIndex> floatingIndex(new KRWibor3M());
 	
 		for (Size i = 0; i < m_swapSize; ++i) {
 			tmpInstrument[i + m_depositeSize] = boost::shared_ptr<RateHelper>(
-				new SwapRateHelper(swapRates[i].getRate(),
-					swapRates[i].getPeriod().length() * swapRates[i].getPeriod().units(),
-					calendar, frequency, swapConvention, swapDcf, index));
-			//termDate[i + m_depositeSize] = tmpInstrument[i + m_depositeSize]->latestDate();
+				new SwapRateHelper(QuantLib::Handle<Quote>(swapRates[i]), swapTenors[i], m_calendar, 
+					fixedFrequency, fixedConvention, fixedDayCount,
+					floatingIndex));					
 		}
 
 		m_instruments = tmpInstrument;
-		double tolerance = 1.0e-15;
+		//double tolerance = 1.0e-12;
 		m_termStructure = boost::shared_ptr<YieldTermStructure>(
-			new PiecewiseYieldCurve<Discount,LogLinear>(asOfDate, m_instruments, m_dcf, tolerance));
-
-		//double tmp = m_termStructure->discount(5);
-
+			new PiecewiseYieldCurve<Discount,LogLinear>(asOfDate, m_instruments, m_dcf));
+		
 	}
 	#pragma region calculate Methods
 	double InterestRateCurve::getDiscountFactor(Time t){
@@ -115,20 +112,22 @@ namespace quantoSauros{
 		Frequency swapFloatingLegFrequency = Quarterly;
 		BusinessDayConvention swapFloatingLegConvention = ModifiedFollowing;
 
-		Date swapStartDate = m_calendar.advance(m_settlementDate, maturity, swapFloatingLegConvention);
-		Date swapEndDate = m_calendar.advance(m_settlementDate, tenor, swapFloatingLegConvention);	
+		Date swapStartDate = m_calendar.advance(m_settlementDate, maturity, ModifiedFollowing);
+		Date swapEndDate = m_calendar.advance(m_settlementDate, tenor, ModifiedFollowing);	
 		VanillaSwap::Type type = VanillaSwap::Payer;
 		Real nominal = 1;
 		Real fixedRate = 0.03;
 		DayCounter fixedDayCount = Actual365Fixed();
-		RelinkableHandle<YieldTermStructure> discountingTermStructure;	
-		boost::shared_ptr<IborIndex> iborIndex(new KRWibor3M(discountingTermStructure));
+		Handle<YieldTermStructure> discountTermStructure(m_termStructure);
+		//RelinkableHandle<YieldTermStructure> discountingTermStructure;	
+		boost::shared_ptr<IborIndex> iborIndex(new KRWibor3M(discountTermStructure));
+		//boost::shared_ptr<IborIndex> iborIndex(new KRWibor(QuantLib::Period(3, TimeUnit::Months)));
 		Real spread = 0;
 
 		quantoSauros::vanillaSwap tmpSwap = quantoSauros::vanillaSwap(type, 
 			nominal, swapStartDate, swapEndDate, swapFixedLegFrequency, swapFixedLegConvention,
 			fixedRate, fixedDayCount, swapFloatingLegFrequency, swapFloatingLegConvention, iborIndex, spread);
-		discountingTermStructure.linkTo(this->m_termStructure);
+		//discountingTermStructure.linkTo(this->m_termStructure);
 
 		Real fairRate = tmpSwap.getFairRate(this->m_termStructure);
 
@@ -140,18 +139,28 @@ namespace quantoSauros{
 		Frequency swapFloatingLegFrequency = Quarterly;
 		BusinessDayConvention swapFloatingLegConvention = ModifiedFollowing;
 
+		Date startDate = m_calendar.adjust(swapStartDate, ModifiedFollowing);
+		Date endDate = m_calendar.adjust(swapEndDate, ModifiedFollowing);
+
 		VanillaSwap::Type type = VanillaSwap::Payer;
 		Real nominal = 1;
 		Real fixedRate = 0.03;
 		DayCounter fixedDayCount = Actual365Fixed();
-		RelinkableHandle<YieldTermStructure> discountingTermStructure;	
-		boost::shared_ptr<IborIndex> iborIndex(new KRWibor3M(discountingTermStructure));
+		Handle<YieldTermStructure> discountTermStructure(m_termStructure);
+		//RelinkableHandle<YieldTermStructure> discountingTermStructure;	
+		
+		/*
+		boost::shared_ptr<IborIndex> iborIndex(
+			new USDLibor(QuantLib::Period(3, TimeUnit::Months), discountingTermStructure));*/
+		boost::shared_ptr<IborIndex> iborIndex(new KRWibor3M(discountTermStructure));
+		//boost::shared_ptr<IborIndex> iborIndex(new KRWibor(QuantLib::Period(3, TimeUnit::Months)));
 		Real spread = 0;
 
 		quantoSauros::vanillaSwap tmpSwap = quantoSauros::vanillaSwap(type, 
-			nominal, swapStartDate, swapEndDate, swapFixedLegFrequency, swapFixedLegConvention,
-			fixedRate, fixedDayCount, swapFloatingLegFrequency, swapFloatingLegConvention, iborIndex, spread);
-		discountingTermStructure.linkTo(this->m_termStructure);
+			nominal, startDate, endDate, 
+			swapFixedLegFrequency, swapFixedLegConvention, fixedRate, fixedDayCount, 
+			swapFloatingLegFrequency, swapFloatingLegConvention, iborIndex, spread);
+		//discountingTermStructure.linkTo(this->m_termStructure);
 
 		Real fairRate = tmpSwap.getFairRate(this->m_termStructure);
 

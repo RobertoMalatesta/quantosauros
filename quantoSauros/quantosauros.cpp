@@ -75,6 +75,11 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** in_today,
 
 	#pragma endregion
 
+		Date todayDate = quantoSauros::util().Date(new_today[0]);
+
+		//////////////////////////////////////////////////////////////
+		QuantLib::Settings::instance().evaluationDate() = todayDate;
+
 	#pragma region generate an Interest Rate Curve
 		std::vector<quantoSauros::InterestRate> interestRates;
 		std::vector<quantoSauros::InterestRate> discountRates;
@@ -92,7 +97,7 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** in_today,
 		DayCounter dcf = Actual365Fixed();
 		Compounding compounding = Continuous;
 		
-		Date todayDate = quantoSauros::util().Date(new_today[0]);
+
 
 		//이자율 커브 생성
 		quantoSauros::InterestRateCurve irCurve(todayDate, interestRates,

@@ -49,13 +49,13 @@ namespace quantoSauros {
 		return m_swap->NPV();
 	}
 	QuantLib::Real vanillaSwap::getFairRate(
-		boost::shared_ptr<QuantLib::YieldTermStructure> termStructure
-		){
-		QuantLib::RelinkableHandle<QuantLib::YieldTermStructure> discountingTermStructure;
+		boost::shared_ptr<QuantLib::YieldTermStructure> termStructure){
+
+		QuantLib::Handle<QuantLib::YieldTermStructure> discountingTermStructure(termStructure);
 		boost::shared_ptr<QuantLib::PricingEngine> swapEngine(
 							 new QuantLib::DiscountingSwapEngine(discountingTermStructure));
 		m_swap->setPricingEngine(swapEngine);
-		discountingTermStructure.linkTo(termStructure);
+		//discountingTermStructure.linkTo(termStructure);
 		return m_swap->fairRate();
 	}
 	vanillaSwap::~vanillaSwap(void)
