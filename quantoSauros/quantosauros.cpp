@@ -55,7 +55,7 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** in_today,
 	//결과
  	double* out_price){
 
-		//util class를 이용하여 input data의 type을 변환
+	//util class를 이용하여 input data의 type을 변환
 	#pragma region Convert the type of input data
 
 		CString* new_today = quantoSauros::util().conversion(in_today);
@@ -76,7 +76,6 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** in_today,
 	#pragma endregion
 
 		Date todayDate = quantoSauros::util().Date(new_today[0]);
-
 		//////////////////////////////////////////////////////////////
 		QuantLib::Settings::instance().evaluationDate() = todayDate;
 
@@ -125,7 +124,7 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** in_today,
 			for (int maturityIndex = 0; maturityIndex < in_volMaturityN; maturityIndex++){	
 
 				quantoSauros::Tenor volMaturity = quantoSauros::Tenor(new_volSurfaceMaturitiesT[maturityIndex]);
-				double vol = in_volSurface[maturityIndex + tenorIndex * in_volTenorN];
+				Volatility vol = in_volSurface[maturityIndex + tenorIndex * in_volTenorN];
 				//Time t = 0;
 				vols.push_back(quantoSauros::Volatility(volMaturity ,vol));
 			}
@@ -166,10 +165,10 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** in_today,
 		QuantLib::Date issueDate = quantoSauros::util().Date(new_issueDate[0]);			
 		QuantLib::Date maturityDate = quantoSauros::util().Date(new_maturityDate[0]);				
 
-		std::vector<double> inCouponRates;
-		std::vector<double> outCouponRates;
-		std::vector<double> rangeUpperRates;
-		std::vector<double> rangeLowerRates;
+		std::vector<QuantLib::Rate> inCouponRates;
+		std::vector<QuantLib::Rate> outCouponRates;
+		std::vector<QuantLib::Rate> rangeUpperRates;
+		std::vector<QuantLib::Rate> rangeLowerRates;
 		std::vector<quantoSauros::Period> rangePeriods;
 
 		for (int i = 0; i < rangeN; i++){
@@ -260,37 +259,52 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** in_today,
 
 		QuantLib::Matrix correlationMatrix(2,2);		
 		correlationMatrix[0][0] = 1.0;
-		correlationMatrix[0][1] = 0.9;
-		correlationMatrix[1][0] = 0.9;
+		correlationMatrix[0][1] = 1.0;
+		correlationMatrix[1][0] = 1.0;
 		correlationMatrix[1][1] = 1.0;
 
 		quantoSauros::CorrelationInfo correlationInfo = 
 			quantoSauros::CorrelationInfo(correlationMatrix);
 
+		std::vector<QuantLib::HullWhiteVolatility> hullWhiteVolatilities;
+		QuantLib::HullWhiteVolatility discountHWVolatility;
+
+		////////////////////////////////////////////////////////////////////
+		std::vector<Volatility> vols;
+		vols.push_back(0.012);
+		vols.push_back(0.013);
+		vols.push_back(0.016);
+		vols.push_back(0.020);
+		std::vector<Date> volDates;
+		volDates.push_back(Date(Day(1), Month(1), Year(2014)));
+		volDates.push_back(Date(Day(1), Month(7), Year(2014)));
+		volDates.push_back(Date(Day(1), Month(1), Year(2015)));
+		volDates.push_back(Date(Day(1), Month(7), Year(2015)));
+		HullWhiteVolatility hwVols(todayDate, dcf, vols, volDates);
+		////////////////////////////////////////////////////////////////////
+				
+		hullWhiteVolatilities.push_back(hwVols);
+
+		discountHWVolatility = hwVols;
+
+
+		//boost::function<Real (Time)> tmpVols = hwVols.vol();
+		//double aatet = tmpVols(0.5);
+
 		//Constructor of a Range Accrual Note
 		quantoSauros::RangeAccrualNote raNote(
 			scheduleInfo, amortizationInfo, 
 			couponInfos, dataInfo, optionInfo,
-			irInfos, discountInfo, correlationInfo
-			);
+			irInfos, discountInfo, correlationInfo, in_simulationNum);
 
-		//getPrice Method of a Range Accrual Note
-		
-		QuantLib::Money result = raNote.getPrice(todayDate);
+		//getPrice Method of a Range Accrual Note		
+		QuantLib::Money result = raNote.getPrice(todayDate, hullWhiteVolatilities, discountHWVolatility);
+		//QuantLib::Money result = QuantLib::Money();
 
-		/*
-		QuantLib::Money raPrice = raNote.getPrice(
-			todayDate, 
-			irInfos, discountInfo,
-			in_simulationNum);
-			*/
-		QuantLib::Money raPrice(0, currency);
-		
 	#pragma endregion
 
-		MarketModelTest marketModelTest;
-
-		marketModelTest.testCallableSwapLS();
+		//MarketModelTest marketModelTest;
+		//marketModelTest.testCallableSwapLS();
 
 
 		//MCLongstaffSchwartzEngineTest LONGSTAFFTEST;
@@ -333,5 +347,5 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** in_today,
 		test.testCalibration();
 		*/
 		
-		return raPrice.value();
+		return result.value();
 }

@@ -8,6 +8,9 @@ namespace quantoSauros{
 	class AbstractPricer {
 	public:
 		AbstractPricer(){};
+		AbstractPricer(QuantLib::Date today){
+			m_today = today;
+		};
 		
 		QuantLib::Money getResults(){
 			return m_price;
@@ -34,6 +37,10 @@ namespace quantoSauros{
 
 	class AbstractAccrualPricer : public AbstractPricer {
 	public:				
+		AbstractAccrualPricer(QuantLib::Date today) : AbstractPricer(today){				
+
+		};
+
 
 	protected:
 		virtual void generateSeeds();
@@ -41,7 +48,7 @@ namespace quantoSauros{
 		QuantLib::Size m_timeGridSize;
 		int m_irNum;
 
-		quantoSauros::AbstractArguments m_args;
+		//quantoSauros::AbstractArguments m_args;
 	};
 
 	class AbstractAveragePricer : public AbstractPricer {

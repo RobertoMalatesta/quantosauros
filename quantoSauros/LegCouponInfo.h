@@ -30,10 +30,10 @@ namespace quantoSauros{
 			QuantLib::Frequency getSwapCouponFrequency1();
 			quantoSauros::InterestRateCurve getReferenceRateCurve1();		
 
-			std::vector<double> getUpperBounds();
-			std::vector<double> getLowerBounds();
-			std::vector<double> getInCouponRates();
-			std::vector<double> getOutCouponRates();			
+			std::vector<QuantLib::Rate> getUpperBounds();
+			std::vector<QuantLib::Rate> getLowerBounds();
+			std::vector<QuantLib::Rate> getInCouponRates();
+			std::vector<QuantLib::Rate> getOutCouponRates();			
 		protected:	
 			//기초자산1 유형
 			quantoSauros::RateType m_rateType1;
@@ -47,13 +47,13 @@ namespace quantoSauros{
 			std::vector<quantoSauros::IRInfo> m_irInfos;
 
 			//Range Accrual In-Coupon 이자율
-			std::vector<double> m_inCouponRates;
+			std::vector<QuantLib::Rate> m_inCouponRates;
 			//Range Accrual Out-Coupon 이자율
-			std::vector<double> m_outCouponRates;
+			std::vector<QuantLib::Rate> m_outCouponRates;
 			//기준자산1 Upper-Barrier
-			std::vector<double> m_upperBounds;
+			std::vector<QuantLib::Rate> m_upperBounds;
 			//기준자산1 Lower-Barrier
-			std::vector<double> m_lowerBounds;
+			std::vector<QuantLib::Rate> m_lowerBounds;
 	};
 	class NoteLegSpreadRangeCouponInfo : public NoteLegRangeCouponInfo {
 		public:
@@ -65,8 +65,8 @@ namespace quantoSauros{
 				QuantLib::Frequency swapCouponFrequency2,
 				quantoSauros::InterestRateCurve referenceRateCurve2,
 				//std::vector<quantoSauros::Period> rangePeriods,
-				std::vector<double> inCouponRates, std::vector<double> outCouponRates,
-				std::vector<double> upperBounds, std::vector<double> lowerBounds){					
+				std::vector<QuantLib::Rate> inCouponRates, std::vector<QuantLib::Rate> outCouponRates,
+				std::vector<QuantLib::Rate> upperBounds, std::vector<QuantLib::Rate> lowerBounds){					
 					m_rateType1 = rateType1;
 					m_tenor1 = tenor1;
 					m_swapCouponFrequency1 = swapCouponFrequency1;
@@ -105,8 +105,8 @@ namespace quantoSauros{
 				QuantLib::Frequency swapCouponFrequency1,
 				quantoSauros::InterestRateCurve referenceRateCurve1,				
 				//std::vector<quantoSauros::Period> rangePeriods,
-				std::vector<double> inCouponRates, std::vector<double> outCouponRates,
-				std::vector<double> upperBounds, std::vector<double> lowerBounds){
+				std::vector<QuantLib::Rate> inCouponRates, std::vector<QuantLib::Rate> outCouponRates,
+				std::vector<QuantLib::Rate> upperBounds, std::vector<QuantLib::Rate> lowerBounds){
 					m_rateType1 = rateType1;
 					m_tenor1 = tenor1;
 					m_swapCouponFrequency1 = swapCouponFrequency1;

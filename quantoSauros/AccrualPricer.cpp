@@ -4,25 +4,32 @@ namespace quantoSauros {
 
 	void RangeAccrualPricer::dividePeriods(){
 		
-		std::vector<quantoSauros::Period> rangePeriods = m_args.getRangePeriods();
-		std::vector<double> inCouponRates = m_args.getInCouponRates();
-		std::vector<double> outCouponRates = m_args.getOutCouponRates();
-		std::vector<std::vector<double>> rangeLowerRates = m_args.getRangeLowerRates();
-		std::vector<std::vector<double>> rangeUpperRates = m_args.getRangeUpperRates();
+		std::vector<quantoSauros::Period> periods = m_args.getPeriods();
+		std::vector<double>& inCouponRates = m_args.getInCouponRates();
+		std::vector<double>& outCouponRates = m_args.getOutCouponRates();
+		std::vector<std::vector<double>>& rangeLowerRates = m_args.getRangeLowerRates();
+		std::vector<std::vector<double>>& rangeUpperRates = m_args.getRangeUpperRates();
 		int idx = 0;
-		while(m_today - rangePeriods[idx].getEndDate() >= 0){
-			if (idx == m_periodNum - 1){
+		int periodNum = periods.size();
+		while(m_today - periods[idx].getEndDate() >= 0){
+			if (idx == periodNum - 1){
 				break;
 			}
 			idx++;
 		}
-		rangePeriods.erase(rangePeriods.begin(), rangePeriods.begin() + idx);
+		
+		periods.erase(periods.begin(), periods.begin() + idx);
 		inCouponRates.erase(inCouponRates.begin(), inCouponRates.begin() + idx);
 		outCouponRates.erase(outCouponRates.begin(), outCouponRates.begin() + idx);
-		for (int i = 0; i < m_irNum; i++){
-			rangeLowerRates[i].erase(rangeLowerRates[i].begin(), rangeLowerRates[i].begin() + idx);			
-			rangeUpperRates[i].erase(rangeUpperRates[i].begin(), rangeUpperRates[i].begin() + idx);		
-		}		
+		rangeLowerRates.erase(rangeLowerRates.begin(), rangeLowerRates.begin() + idx);			
+		rangeUpperRates.erase(rangeUpperRates.begin(), rangeUpperRates.begin() + idx);		
+		
+		m_args.setPeriods(periods);
+		m_args.setInCouponRates(inCouponRates);
+		m_args.setOutCouponRates(outCouponRates);
+		m_args.setRangeLowerRates(rangeLowerRates);
+		m_args.setRangeUpperRates(rangeUpperRates);
+		//m_periodNum = rangePeriods.size();
 	}
 
 	void RangeAccrualPricer::generatePaths(){
@@ -35,32 +42,30 @@ namespace quantoSauros {
 
 		//Path Generating module
 		for (int simIndex = 0; simIndex < m_simulationNum; simIndex++){
-			//data 저장
-			std::vector<double> coupon(m_periodNum);
-			std::vector<double> df(m_periodNum);	
-			//std::vector<quantoSauros::RangeAccrualData> data(m_periodNum);
 			for (int periodIndex = 0; periodIndex < m_periodNum; periodIndex++){			
-				quantoSauros::Period period = m_args.getRangePeriods()[periodIndex];
+				quantoSauros::Period period = m_args.getPeriods()[periodIndex];
 				QuantLib::Time startTenor = std::max(
 					(double) m_args.getDayCounter().yearFraction(m_today, period.getStartDate()), 0.0);
 				QuantLib::Time periodTenor = period.getPeriodTenor(m_args.getDayCounter());
-
+				
 				//1. process				
 				std::vector<boost::shared_ptr<StochasticProcess1D>> processes(m_irNum + 1);
 				boost::shared_ptr<StochasticProcess> process;
 				std::vector<boost::shared_ptr<HullWhiteProcess>> IRProcess(m_irNum);
 				for (int i = 0; i < m_irNum; i++){
-					/*IRProcess[i] = boost::shared_ptr<HullWhiteProcess>(
-						new HullWhiteProcess(m_floatTermStructure[i].getInterestRateCurve(), 
-						m_IRParams[i].getMeanReversion1F(), m_IRParams[i].getVolatility1F()));*/
+					
 					IRProcess[i] = boost::shared_ptr<HullWhiteProcess>(
 						new HullWhiteProcess(Handle<YieldTermStructure>(m_floatTermStructure[i].getInterestRateCurve()), 
-						m_IRParams[i].getMeanReversion1F(), m_IRParams[i].getVolatility1F()));
+						m_IRParams[i].getMeanReversion1F(), 
+						m_args.getHullWhiteVolatilities()[i]));
+						//m_IRParams[i].getVolatility1F()));
 					processes[i] = boost::shared_ptr<StochasticProcess1D>(IRProcess[i]);
 				}
 				boost::shared_ptr<HullWhiteProcess> discountProcess(
 					new HullWhiteProcess(Handle<YieldTermStructure>(m_discountTermStructure.getInterestRateCurve()), 
-					m_discountParams.getMeanReversion1F(), m_discountParams.getVolatility1F()));
+					m_discountParams.getMeanReversion1F(), 
+					m_args.getDiscountHullWhiteVolatility()));
+					//m_discountParams.getVolatility1F()));
 				processes[m_irNum] = boost::shared_ptr<StochasticProcess1D>(discountProcess);
 
 				//set the initialized short rate value into the process
@@ -94,90 +99,16 @@ namespace quantoSauros {
 					m_args.getFloatCurveTenors(), m_args.getRateTypes(), 
 					m_args.getSwapCouponFrequencies(), 
 					m_floatTermStructure, 
-					&path, m_IRParams);
-				
-				/*
-				int accruedDays = 0;
-				double cumulatedDF = 1;
-				double dt = timeGrid.dt(0);
+					&path, m_IRParams,
+					m_args.getHullWhiteVolatilities(),
+					m_args.getDiscountHullWhiteVolatility());
 
-				for (Size timeIndex = 0; timeIndex < timeGrid.size() - 1; timeIndex++){
-					//4.1. Calculate the reference Rate
-					QuantLib::Time start = timeGrid[timeIndex] + startTenor;
-
-					std::vector<Real> referenceRates(m_irNum);
-					for (int i = 0; i < m_irNum; i++){							
-						double end = 0;
-						double vol = 0;
-						double bondPrice = 0;
-						double bondPriceSum = 0;
-						QuantLib::Time tenor = m_args.getFloatCurveTenors()[i];
-
-						quantoSauros::RateType type = m_args.getRateTypes()[i];
-						if (type == quantoSauros::RateType::DepositRate){								
-							end = start + tenor;
-							vol = m_IRParams[i].getVolatility1F();
-							QuantLib::HullWhite hullWhite(m_floatTermStructure[i], 
-								m_IRParams[i].getMeanReversion1F(), vol);
-							bondPrice = hullWhite.discountBond(start, end, path.value[i][timeIndex]);
-							referenceRates[i] = - log(bondPrice) / tenor;
-						} else if (type == quantoSauros::RateType::SwapRate){								
-							//QuantLib::Frequency swapCouponFrequency = m_swapCouponFrequencies[i];
-							double swapTenor = 1 / m_args.getSwapCouponFrequencies()[i];
-							int swapRateNum = tenor / swapTenor;
-							for (int j = 0; j < swapRateNum; j++){
-								double tmpTenor = swapTenor * (j + 1);
-								end = start + tmpTenor;
-								vol = m_IRParams[i].getVolatility1F();
-								QuantLib::HullWhite hullWhite(m_floatTermStructure[i], 
-									m_IRParams[i].getMeanReversion1F(), vol);
-								bondPrice = hullWhite.discountBond(start, end, path.value[i][timeIndex]);
-								bondPriceSum += bondPrice * swapTenor;
-							}								
-							referenceRates[i] = (1 - bondPrice) / bondPriceSum;
-						}							
-					}
-					//4.2. Calculate the accrual Days										
-					if (m_irNum == 1){
-						double upperRate1 = m_args.getRangeUpperRates()[0][periodIndex];
-						double lowerRate1 = m_args.getRangeLowerRates()[0][periodIndex];
-						if (referenceRates[0] >= lowerRate1 && referenceRates[0] <= upperRate1) {								
-							accruedDays++;
-						}
-					} else if (m_irNum == 2){
-						double upperRate1 = m_args.getRangeUpperRates()[0][periodIndex];
-						double lowerRate1 = m_args.getRangeLowerRates()[0][periodIndex];
-						double upperRate2 = m_args.getRangeUpperRates()[1][periodIndex];
-						double lowerRate2 = m_args.getRangeLowerRates()[1][periodIndex];
-						if (referenceRates[0] >= lowerRate1 && referenceRates[0] <= upperRate1) {
-							if (referenceRates[1] >= lowerRate2 && referenceRates[1] <= upperRate2) {
-								accruedDays++;
-							}
-						}
-					}
-
-					//4.3. Calculate the discount Rate
-					double shortRate = path.value[0][timeIndex];
-					double dfRate = path.value[m_irNum][timeIndex];
-					cumulatedDF *= exp(- dfRate * timeGrid.dt(timeIndex));
-				}
-					*/
-				
 				//initialize the short rate value
 				for (int i = 0; i < m_irNum; i++){
 					x0ForIRProcess[i] = path.value[i][timeGrid.size() - 1];
-				}	
-				
+				}					
 				x0ForDiscountProcess = path.value[m_irNum][timeGrid.size() - 1];
-			
-				//calculate coupon amount
-				//coupon[periodIndex] = accruedDays * m_args.getInCouponRates()[periodIndex] * dt;
-				//save the calculated discount factor
-				//df[periodIndex] = cumulatedDF;
-				
 			}
-			m_coupons[simIndex] = coupon;
-			m_dfs[simIndex] = df;
 		}
 	}
 	
@@ -193,30 +124,22 @@ namespace quantoSauros {
 		for (int periodIndex = m_periodNum - 1; periodIndex >= 0; periodIndex--){
 				
 			std::vector<double> payoff(m_simulationNum);
-			bool hasExercise = m_args.getRangePeriods()[periodIndex].hasExercise();
-			double exercisePrice = m_args.getRangePeriods()[periodIndex].getExercisePrice();
+			bool hasExercise = m_args.getPeriods()[periodIndex].hasExercise();
+			double exercisePrice = m_args.getPeriods()[periodIndex].getExercisePrice();
 			std::vector<bool> LSMCCandidateFlags(m_simulationNum);			
 			int numOfCandidate = 0;
 			for (int simIndex = 0; simIndex < m_simulationNum; simIndex++){				
 				double previousPayoff = m_payoffs[periodIndex + 1][simIndex];
-				//double coupon = m_coupons[simIndex][periodIndex];
-				//double df = m_dfs[simIndex][periodIndex];
 				double coupon = m_data[simIndex][periodIndex].getPayoffs();
 				double df = m_data[simIndex][periodIndex].getDiscountFactor();
 				if (hasExercise){
-					//Select LSMC Candidates
+					//TODO : Select LSMC Candidates
 					//if (){}
 
 					payoff[simIndex] = (previousPayoff + coupon) * df;
 					LSMCCandidateFlags[simIndex] = true;
 					numOfCandidate++;
-					/*
-					if (previousPayoff < exercisePrice){
-						payoff[simIndex] = (previousPayoff + coupon) * df;
-					} else {
-						payoff[simIndex] = (exercisePrice + coupon) * df;
-					}
-					*/
+
 				} else {
 					payoff[simIndex] = (previousPayoff + coupon) * df;
 				}
@@ -237,7 +160,7 @@ namespace quantoSauros {
 						lsmcData.cumulatedCashFlows = m_payoffs[periodIndex][simIndex];
 						lsmcData.isVaild = true;	
 						lsmcData.controlValue = 0;
-						lsmcData.exerciseValue = 1;
+						lsmcData.exerciseValue = exercisePrice;
 						LSMCInputData[candiIndex] = lsmcData;
 						candiIndex++;
 					}
@@ -262,15 +185,10 @@ namespace quantoSauros {
 							if (exercisePrice > LSMCContinuation[LSMCIndex]){
 								m_payoffs[periodIndex][simIndex] = exercisePrice;
 							}
-
 						}
 						LSMCIndex++;
 					}
-					//payoff 수정
-
 				}
-
-
 			}
 		}
 

@@ -24,7 +24,9 @@ namespace quantoSauros{
 			std::vector<quantoSauros::InterestRateCurve> floatTermStructures,
 			//헐화이트정보
 			sample_type* shortRatePath, 
-			std::vector<quantoSauros::HullWhiteParameters> IRParams)
+			std::vector<quantoSauros::HullWhiteParameters> IRParams,
+			std::vector<QuantLib::HullWhiteVolatility> hullWhiteVolatilities,
+			QuantLib::HullWhiteVolatility discountHullWhiteVolatility)
 				: AbstractData(asOfDate, timeGrid, period, maturityDate, numOfIR) {
 
 				m_startTime = startTime;
@@ -37,6 +39,9 @@ namespace quantoSauros{
 				m_rangeLowerRate = rangeLowerRate;
 				m_inCouponRate = inCouponRate;
 				m_outCouponRate = outCouponRate;
+				m_hullWhiteVolatilities = hullWhiteVolatilities;
+				m_discountHullWhiteVolatilities = discountHullWhiteVolatility;
+
 				savePathsInfo(shortRatePath);
 				init();
 		};
@@ -84,8 +89,8 @@ namespace quantoSauros{
 
 					quantoSauros::RateType type = m_rateTypes[i];
 					if (type == quantoSauros::RateType::DepositRate){								
-						end = start + tenor;
-						vol = m_IRParams[i].getVolatility1F();
+						end = start + tenor;						
+						vol = m_hullWhiteVolatilities[i].vol()(start);;//m_IRParams[i].getVolatility1F();
 						QuantLib::HullWhite hullWhite(
 							Handle<YieldTermStructure>(m_floatTermStructure[i].getInterestRateCurve()), 
 							m_IRParams[i].getMeanReversion1F(), vol);
@@ -99,7 +104,7 @@ namespace quantoSauros{
 						for (int j = 0; j < swapRateNum; j++){
 							double tmpTenor = swapTenor * (j + 1);
 							end = start + tmpTenor;
-							vol = m_IRParams[i].getVolatility1F();
+							vol = m_hullWhiteVolatilities[i].vol()(start);//m_IRParams[i].getVolatility1F();
 							QuantLib::HullWhite hullWhite(
 								Handle<YieldTermStructure>(m_floatTermStructure[i].getInterestRateCurve()), 
 								m_IRParams[i].getMeanReversion1F(), vol);
@@ -155,5 +160,8 @@ namespace quantoSauros{
 
 		std::vector<double> m_rangeUpperRate;
 		std::vector<double> m_rangeLowerRate;
+
+		std::vector<QuantLib::HullWhiteVolatility> m_hullWhiteVolatilities;
+		QuantLib::HullWhiteVolatility m_discountHullWhiteVolatilities;
 	};
 }
