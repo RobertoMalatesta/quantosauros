@@ -40,6 +40,7 @@ double QUANTOSAUROS_API __stdcall test1(SAFEARRAY** input);
 double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** today,
 	//금리정보
 	long rateN, double* market_ytmRates, double* market_discountRates, SAFEARRAY** spotRatesTenor,
+	long in_correlation,
 	//변동성정보
 	long volMaturityN, long volTenorN, double* market_volSurface, 
 	SAFEARRAY** volSurfaceMaturities, SAFEARRAY** volSurfaceTenors,
