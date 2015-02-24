@@ -1,4 +1,4 @@
-#include "AccrualPricer.h"
+#include "AccrualBondPricer.h"
 
 namespace quantoSauros {
 
@@ -90,8 +90,8 @@ namespace quantoSauros {
 				sample_type path = generator.next();
 
 				m_data[simIndex][periodIndex] = RangeAccrualData(
-					m_today, period, timeGrid, m_args.getMaturityDate(),
-					m_irNum, startTenor, 
+					m_today, m_args.getMaturityDate(), period, 
+					startTenor, timeGrid, m_args.getDayCounter(),
 					m_args.getRangeUpperRates()[periodIndex], 
 					m_args.getRangeLowerRates()[periodIndex], 
 					m_args.getInCouponRates()[periodIndex],
@@ -99,7 +99,8 @@ namespace quantoSauros {
 					m_args.getFloatCurveTenors(), m_args.getRateTypes(), 
 					m_args.getSwapCouponFrequencies(), 
 					m_floatTermStructure, 
-					&path, m_IRParams,
+					&path, 
+					m_IRParams,
 					m_args.getHullWhiteVolatilities(),
 					m_args.getDiscountHullWhiteVolatility());
 

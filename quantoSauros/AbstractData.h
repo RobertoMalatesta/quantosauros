@@ -11,9 +11,10 @@ namespace quantoSauros{
 	class AbstractData {
 	public:	
 		AbstractData(){};
-		AbstractData(QuantLib::Date asOfDate, quantoSauros::Period period,
-			QuantLib::TimeGrid timeGrid, QuantLib::Date maturityDate, int numOfIR,
-			QuantLib::Time startTime,
+		AbstractData(QuantLib::Date asOfDate, QuantLib::Date maturityDate,
+			quantoSauros::Period period,
+			QuantLib::Time startTime, QuantLib::TimeGrid timeGrid,
+			QuantLib::DayCounter dcf,
 			//이자율 정보
 			std::vector<double> floatCurveTenors,
 			std::vector<quantoSauros::RateType> rateTypes,
@@ -29,7 +30,7 @@ namespace quantoSauros{
 				m_timeGrid = timeGrid;
 				m_period = period;
 				m_maturityDate = maturityDate;
-				m_numOfIR = numOfIR;
+				m_numOfIR = rateTypes.size();
 				m_referenceRates = std::vector<std::vector<double>>(m_timeGrid.size());
 
 				m_startTime = startTime;
@@ -44,6 +45,7 @@ namespace quantoSauros{
 
 				m_cumulatedDF = 1;
 				m_dt = m_timeGrid.dt(0);		
+				m_dcf = dcf;
 				savePathsInfo(shortRatePath);				
 		};	
 		virtual double getReferenceRate(int IRIndex, int timeIndex){
@@ -160,6 +162,7 @@ namespace quantoSauros{
 		double m_dt;
 		QuantLib::Date m_maturityDate;
 		quantoSauros::Period m_period;
+		QuantLib::DayCounter m_dcf;
 
 		//Generated Results
 		std::vector<std::vector<Rate>> m_referenceRates;		

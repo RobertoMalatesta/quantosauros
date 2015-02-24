@@ -81,9 +81,10 @@
     <ClInclude Include="AbstractPeriod.h" />
     <ClInclude Include="AbstractPricer.h" />
     <ClInclude Include="AbstractRangeAccrualNote.h" />
-    <ClInclude Include="AccrualPricer.h" />
+    <ClInclude Include="AccrualBondPricer.h" />
     <ClInclude Include="CorrelationInfo.h" />
     <ClInclude Include="CouponBondData.h" />
+    <ClInclude Include="CouponBondPricer.h" />
     <ClInclude Include="HullWhiteParameters.h" />
     <ClInclude Include="InterestRate.h" />
     <ClInclude Include="InterestRateCurve.h" />
@@ -119,8 +120,7 @@
     <None Include="quantoSauros.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AbstractPricer.cpp" />
-    <ClCompile Include="AccrualPricer.cpp" />
+    <ClCompile Include="AccrualBondPricer.cpp" />
     <ClCompile Include="InterestRate.cpp" />
     <ClCompile Include="InterestRateCurve.cpp" />
     <ClCompile Include="LongstaffSchwartz.cpp" />
