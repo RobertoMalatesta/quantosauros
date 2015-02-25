@@ -94,6 +94,12 @@
     <Filter Include="Header Files\Core\derivatives\Datas">
       <UniqueIdentifier>{2170d963-fdb3-4bb3-a86a-a534899628b1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Core\derivatives\Method">
+      <UniqueIdentifier>{c18b6c1a-e424-4d7f-b7a8-5626040edae6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\derivatives\Method">
+      <UniqueIdentifier>{8fb51039-e17e-4319-a024-36ba081cf288}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractPeriod.h">
@@ -210,6 +216,9 @@
     <ClInclude Include="RangeAccrualData.h">
       <Filter>Header Files\Core\derivatives\Datas</Filter>
     </ClInclude>
+    <ClInclude Include="HullWhiteVolatilityCalibration.h">
+      <Filter>Header Files\Core\derivatives\Method</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="quantoSauros.def">
@@ -270,6 +279,9 @@
     </ClCompile>
     <ClCompile Include="marketmodel.cpp">
       <Filter>Source Files\Test</Filter>
+    </ClCompile>
+    <ClCompile Include="HullWhiteVolatilityCalibration.cpp">
+      <Filter>Source Files\Core\derivatives\Method</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
