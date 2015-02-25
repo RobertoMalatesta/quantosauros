@@ -51,6 +51,7 @@
       <AdditionalIncludeDirectories>D:\boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;QUANTOSAUROS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -87,6 +88,7 @@
     <ClInclude Include="CouponBondData.h" />
     <ClInclude Include="CouponBondPricer.h" />
     <ClInclude Include="HullWhiteParameters.h" />
+    <ClInclude Include="HullWhiteVolatilityCalibration.h" />
     <ClInclude Include="InterestRate.h" />
     <ClInclude Include="InterestRateCurve.h" />
     <ClInclude Include="IRInfo.h" />
@@ -121,7 +123,8 @@
     <None Include="quantoSauros.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AccrualBondPricer.cpp" />
+    <ClCompile Include="AbstractPricer.cpp" />
+    <ClCompile Include="AccrualPricer.cpp" />
     <ClCompile Include="InterestRate.cpp" />
     <ClCompile Include="InterestRateCurve.cpp" />
     <ClCompile Include="LongstaffSchwartz.cpp" />
