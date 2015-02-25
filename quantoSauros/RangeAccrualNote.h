@@ -2,7 +2,7 @@
 #include <ql/quantlib.hpp>
 #include <algorithm> 
 #include "AbstractRangeAccrualNote.h";
-#include "AccrualPricer.h";
+#include "AccrualBondPricer.h";
 #include "RangeAccrualArguments.h";
 
 namespace quantoSauros {

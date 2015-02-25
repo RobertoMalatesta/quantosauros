@@ -195,9 +195,6 @@
     <ClInclude Include="AbstractPricer.h">
       <Filter>Header Files\Core\derivatives\Pricers</Filter>
     </ClInclude>
-    <ClInclude Include="AccrualPricer.h">
-      <Filter>Header Files\Core\derivatives\Pricers</Filter>
-    </ClInclude>
     <ClInclude Include="AbstractArguments.h">
       <Filter>Header Files\Core\derivatives\Arguments</Filter>
     </ClInclude>
@@ -218,6 +215,15 @@
     </ClInclude>
     <ClInclude Include="HullWhiteVolatilityCalibration.h">
       <Filter>Header Files\Core\derivatives\Method</Filter>
+    </ClInclude>
+    <ClInclude Include="CouponBondData.h">
+      <Filter>Header Files\Core\derivatives\Datas</Filter>
+    </ClInclude>
+    <ClInclude Include="CouponBondPricer.h">
+      <Filter>Header Files\Core\derivatives\Pricers</Filter>
+    </ClInclude>
+    <ClInclude Include="AccrualBondPricer.h">
+      <Filter>Header Files\Core\derivatives\Pricers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -268,20 +274,11 @@
     <ClCompile Include="mclongstaffschwartzengine.cpp">
       <Filter>Source Files\Test</Filter>
     </ClCompile>
-    <ClCompile Include="AccrualPricer.cpp">
-      <Filter>Source Files\Core\derivatives\Pricers</Filter>
-    </ClCompile>
-    <ClCompile Include="AbstractPricer.cpp">
-      <Filter>Source Files\Core\derivatives\Pricers</Filter>
-    </ClCompile>
     <ClCompile Include="LongstaffSchwartz.cpp">
       <Filter>Source Files\Core\derivatives\Models\LSMC</Filter>
     </ClCompile>
     <ClCompile Include="marketmodel.cpp">
       <Filter>Source Files\Test</Filter>
-    </ClCompile>
-    <ClCompile Include="HullWhiteVolatilityCalibration.cpp">
-      <Filter>Source Files\Core\derivatives\Method</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

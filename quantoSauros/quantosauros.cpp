@@ -34,6 +34,7 @@ double QUANTOSAUROS_API __stdcall test1(SAFEARRAY** input){
 double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** in_today,
 	//금리정보
 	long in_rateN, double* in_ytmRates, double* in_discountRates, SAFEARRAY** in_spotRatesTenor,
+	long in_correlation,
 	//변동성정보
 	long in_volMaturityN, long in_volTenorN, double* in_volSurface, 
 	SAFEARRAY** in_volSurfaceMaturities, SAFEARRAY** in_volSurfaceTenors, 
@@ -259,8 +260,8 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** in_today,
 
 		QuantLib::Matrix correlationMatrix(2,2);		
 		correlationMatrix[0][0] = 1.0;
-		correlationMatrix[0][1] = 1.0;
-		correlationMatrix[1][0] = 1.0;
+		correlationMatrix[0][1] = in_correlation;
+		correlationMatrix[1][0] = in_correlation;
 		correlationMatrix[1][1] = 1.0;
 
 		quantoSauros::CorrelationInfo correlationInfo = 
@@ -298,7 +299,9 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** in_today,
 			irInfos, discountInfo, correlationInfo, in_simulationNum);
 
 		//getPrice Method of a Range Accrual Note		
-		QuantLib::Money result = raNote.getPrice(todayDate, hullWhiteVolatilities, discountHWVolatility);
+		QuantLib::Money result = raNote.getPrice(todayDate, 
+			hullWhiteVolatilities, discountHWVolatility);
+
 		//QuantLib::Money result = QuantLib::Money();
 
 	#pragma endregion
