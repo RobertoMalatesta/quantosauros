@@ -1,13 +1,7 @@
 #pragma once
 #include <ql/quantlib.hpp>
 #include "AbstractArguments.h"
-#include "LegAmortizationInfo.h";
-#include "LegCouponInfo.h";
-#include "LegDataInfo.h";
-#include "LegOptionInfo.h";
-#include "LegScheduleInfo.h";
-#include "IRInfo.h";
-#include "CorrelationInfo.h";
+
 
 namespace quantoSauros {
 	class RangeAccrualArguments : public AbstractArguments {
@@ -77,14 +71,8 @@ namespace quantoSauros {
 				m_monitorFrequency = dataInfo->getMonitorFrequency();
 				m_accruedCoupon = dataInfo->getAccruedCoupon();
 				m_simulationNum = simulationNum;
-		}
+		};
 
-		std::vector<quantoSauros::Period> getPeriods(){
-			return m_periods;
-		}
-		void setPeriods(std::vector<quantoSauros::Period> periods){
-			m_periods = periods;
-		}
 		std::vector<QuantLib::Rate> getInCouponRates(){
 			return m_inCouponRates;
 		}
@@ -96,21 +84,6 @@ namespace quantoSauros {
 		}
 		void setOutCouponRates(std::vector<QuantLib::Rate> outCouponRates){
 			m_outCouponRates = outCouponRates;
-		}
-		int getMonitorFrequency(){
-			return m_monitorFrequency;
-		}
-		QuantLib::Matrix getCorrelationMatrix(){
-			return m_correlationMatrix;
-		}
-		std::vector<double> getFloatCurveTenors(){
-			return m_floatCurveTenors;
-		}
-		std::vector<quantoSauros::RateType> getRateTypes(){
-			return m_rateTypes;
-		}
-		std::vector<QuantLib::Frequency> getSwapCouponFrequencies(){
-			return m_swapCouponFrequencies;
 		}
 		std::vector<std::vector<QuantLib::Rate>> getRangeUpperRates(){
 			return m_rangeUpperRates;
@@ -124,59 +97,16 @@ namespace quantoSauros {
 		void setRangeLowerRates(std::vector<std::vector<QuantLib::Rate>> rangeLowerRates){
 			m_rangeLowerRates = rangeLowerRates;
 		}
-		int getSimulationNum(){
-			return m_simulationNum;
-		}
-		std::vector<quantoSauros::IRInfo> getIRInfos(){
-			return m_irInfos;
-		}
-		quantoSauros::IRInfo getDiscountInfo(){
-			return m_discountInfo;
-		}
-		void setHullWhiteVolatilities(std::vector<QuantLib::HullWhiteVolatility> hwVolatilities){
-			m_hwVolatilities = hwVolatilities;
-		}
-		std::vector<QuantLib::HullWhiteVolatility> getHullWhiteVolatilities(){
-			return m_hwVolatilities;
-		}
-		void setDiscountHullWhiteVolatility(QuantLib::HullWhiteVolatility discountHWVolatility){
-			m_discountHWVolatility = discountHWVolatility;
-		}
-		QuantLib::HullWhiteVolatility getDiscountHullWhiteVolatility(){
-			return m_discountHWVolatility;
-		}
 
 	private:
-		//상품 기본정보
-		bool m_includePrincipal;
-
-		//기준금리 정보
-		std::vector<quantoSauros::RateType> m_rateTypes;
-		std::vector<double> m_floatCurveTenors;
-		std::vector<QuantLib::Frequency> m_swapCouponFrequencies;
-
 		//Range 구간 정보
-		std::vector<quantoSauros::Period> m_periods;
 		std::vector<std::vector<QuantLib::Rate>> m_rangeUpperRates; 
 		std::vector<std::vector<QuantLib::Rate>> m_rangeLowerRates;
 		std::vector<QuantLib::Rate> m_inCouponRates;
 		std::vector<QuantLib::Rate> m_outCouponRates;		
 				
-		//행사 정보
-		QuantLib::Option::Type m_optionType;
-
-		//기타 정보
-		double m_accruedCoupon;
-		int m_monitorFrequency;
-		int m_simulationNum;
-
-		//시장데이터 정보
-		QuantLib::Matrix m_correlationMatrix;
-		std::vector<quantoSauros::IRInfo> m_irInfos;
-		quantoSauros::IRInfo m_discountInfo;
-
-		//헐화이트 변동성
-		std::vector<QuantLib::HullWhiteVolatility> m_hwVolatilities;
-		QuantLib::HullWhiteVolatility m_discountHWVolatility;
+		//Range 기타 정보
+		double m_accruedCoupon;		
+			
 	};
 }

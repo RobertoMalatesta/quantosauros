@@ -18,7 +18,7 @@ namespace quantoSauros{
 			std::string getClassName(){
 				return m_className;
 			};
-	protected:			
+		protected:			
 			std::string m_className;
 	};
 
@@ -55,6 +55,7 @@ namespace quantoSauros{
 			//기준자산1 Lower-Barrier
 			std::vector<QuantLib::Rate> m_lowerBounds;
 	};
+
 	class NoteLegSpreadRangeCouponInfo : public NoteLegRangeCouponInfo {
 		public:
 			NoteLegSpreadRangeCouponInfo(
@@ -98,6 +99,7 @@ namespace quantoSauros{
 			//기초자산2 금리커브
 			quantoSauros::InterestRateCurve m_referenceRateCurve2;
 	};
+	
 	class NoteLegSpotRangeCouponInfo : public NoteLegRangeCouponInfo {
 		public:
 			NoteLegSpotRangeCouponInfo(

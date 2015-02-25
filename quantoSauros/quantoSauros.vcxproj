@@ -83,6 +83,7 @@
     <ClInclude Include="AbstractRangeAccrualNote.h" />
     <ClInclude Include="AccrualBondPricer.h" />
     <ClInclude Include="CorrelationInfo.h" />
+    <ClInclude Include="CouponBondArguments.h" />
     <ClInclude Include="CouponBondData.h" />
     <ClInclude Include="CouponBondPricer.h" />
     <ClInclude Include="HullWhiteParameters.h" />

@@ -67,7 +67,7 @@ namespace quantoSauros{
 		protected:
 			//virtual void generateSeeds();
 
-			//quantoSauros::AbstractArguments m_args;
+			quantoSauros::AbstractArguments m_args;
 	};
 
 	class AbstractCouponBondPricer : public AbstractPricer {

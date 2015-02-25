@@ -23,7 +23,7 @@ namespace quantoSauros{
 					m_rateType = rateType;
 					m_floatCurveTenor = floatCurveTenor;
 					m_swapCouponFrequency = swapCouponFrequency;
-			}
+			};
 			quantoSauros::IRInfo(
 				quantoSauros::InterestRateCurve interestRateCurve, 
 				quantoSauros::VolatilitySurface volatilitySurface,
@@ -32,7 +32,7 @@ namespace quantoSauros{
 					m_interestRateCurve = interestRateCurve;
 					m_volatilitySurface = volatilitySurface;
 					m_hullWhiteParams = hullWhiteParams;
-			}
+			};
 			quantoSauros::InterestRateCurve getInterestRateCurve();
 			quantoSauros::VolatilitySurface getVolatilitySurface();
 			quantoSauros::HullWhiteParameters getHullWhiteParams();

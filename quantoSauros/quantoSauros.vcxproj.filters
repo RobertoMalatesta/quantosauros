@@ -216,6 +216,9 @@
     <ClInclude Include="AccrualBondPricer.h">
       <Filter>Header Files\Core\derivatives\Pricers</Filter>
     </ClInclude>
+    <ClInclude Include="CouponBondArguments.h">
+      <Filter>Header Files\Core\derivatives\Arguments</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="quantoSauros.def">
