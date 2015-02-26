@@ -213,9 +213,6 @@
     <ClInclude Include="RangeAccrualData.h">
       <Filter>Header Files\Core\derivatives\Datas</Filter>
     </ClInclude>
-    <ClInclude Include="HullWhiteVolatilityCalibration.h">
-      <Filter>Header Files\Core\derivatives\Method</Filter>
-    </ClInclude>
     <ClInclude Include="CouponBondData.h">
       <Filter>Header Files\Core\derivatives\Datas</Filter>
     </ClInclude>
@@ -227,6 +224,9 @@
     </ClInclude>
     <ClInclude Include="CouponBondArguments.h">
       <Filter>Header Files\Core\derivatives\Arguments</Filter>
+    </ClInclude>
+    <ClInclude Include="HullWhiteVolatilityCalibration.h">
+      <Filter>Header Files\Core\derivatives\Method</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -282,6 +282,12 @@
     </ClCompile>
     <ClCompile Include="marketmodel.cpp">
       <Filter>Source Files\Test</Filter>
+    </ClCompile>
+    <ClCompile Include="AccrualBondPricer.cpp">
+      <Filter>Source Files\Core\derivatives\Pricers</Filter>
+    </ClCompile>
+    <ClCompile Include="HullWhiteVolatilityCalibration.cpp">
+      <Filter>Source Files\Core\derivatives\Method</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

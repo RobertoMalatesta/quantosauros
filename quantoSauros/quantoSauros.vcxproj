@@ -59,6 +59,9 @@
       <ModuleDefinitionFile>quantoSauros.def</ModuleDefinitionFile>
       <SubSystem>Windows</SubSystem>
     </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -123,8 +126,8 @@
     <None Include="quantoSauros.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AbstractPricer.cpp" />
-    <ClCompile Include="AccrualPricer.cpp" />
+    <ClCompile Include="AccrualBondPricer.cpp" />
+    <ClCompile Include="HullWhiteVolatilityCalibration.cpp" />
     <ClCompile Include="InterestRate.cpp" />
     <ClCompile Include="InterestRateCurve.cpp" />
     <ClCompile Include="LongstaffSchwartz.cpp" />

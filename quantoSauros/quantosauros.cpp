@@ -147,18 +147,18 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** in_today,
 		QuantLib::DayCounter dcf1 = quantoSauros::util().DayCounter(new_dcf[0]);
 		
 		//Range 구간 데이터
-		Date* exerciseDate = new Date[rangeN + 1];
-		double* exercisePrice = new double[rangeN + 1];
-		Date* rangeStartDates = new Date[rangeN + 1];
-		Date* rangeEndDates = new Date[rangeN + 1];
-		bool* exerciseFlag = new bool[rangeN];
+		std::vector<QuantLib::Date> exerciseDate(rangeN + 1);
+		std::vector<double> exercisePrice(rangeN + 1);
+		std::vector<QuantLib::Date> rangeStartDates(rangeN + 1);
+		std::vector<QuantLib::Date> rangeEndDates(rangeN + 1);
+		std::vector<bool> exerciseFlag(rangeN);
 
 		for (int i = 0; i < rangeN; i++){
 			exerciseFlag[i] = quantoSauros::util().TrueOrFalse(new_callFlags[i]);
 			rangeStartDates[i] = quantoSauros::util().Date(new_rangeStartDays[i]);
 			rangeEndDates[i] = quantoSauros::util().Date(new_rangeEndDays[i]);
 			if (exerciseFlag[i] == true){
-				exerciseDate[i] = quantoSauros::util().Date(new_rangeEndDays[i]);				
+				exerciseDate[i] = quantoSauros::util().Date(new_rangeEndDays[i]);
 				exercisePrice[i] = 1.0;
 			}
 		}
@@ -301,7 +301,13 @@ double QUANTOSAUROS_API __stdcall bootstrapping(SAFEARRAY** in_today,
 		//getPrice Method of a Range Accrual Note		
 		QuantLib::Money result = raNote.getPrice(todayDate, 
 			hullWhiteVolatilities, discountHWVolatility);
+		
+		/*
+		HullWhiteVolatilityCalibration cali = new HullWhiteVolatilityCalibration(todayDate, 
+			maturityDate, exerciseDate, optionType, irCurve, volSurfaces, floatParam, dcf, currency);
 
+		cali.calibration();
+		*/
 		//QuantLib::Money result = QuantLib::Money();
 
 	#pragma endregion
