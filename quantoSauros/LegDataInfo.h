@@ -5,24 +5,22 @@
 namespace quantoSauros{
 	class NoteLegDataInfo : public AbstractLegDataInfo {
 		public:
-			NoteLegDataInfo(){}
+			NoteLegDataInfo()
+				: AbstractLegDataInfo(){
+			};
 			NoteLegDataInfo(double accruedCoupon, int monitorFrequency)
-			{
-				m_accruedCoupon = accruedCoupon;
-				m_monitorFrequency = monitorFrequency;
-			}
+				: AbstractLegDataInfo(monitorFrequency){
+				m_accruedCoupon = accruedCoupon;				
+			};
+
 			double NoteLegDataInfo::getAccruedCoupon();
-			int NoteLegDataInfo::getMonitorFrequency();
+			
 		protected:
-			double m_accruedCoupon;
-			int m_monitorFrequency;
+			double m_accruedCoupon;			
 	};
 
 	inline double NoteLegDataInfo::getAccruedCoupon(){
 		return m_accruedCoupon;
-	}
-	inline int NoteLegDataInfo::getMonitorFrequency(){
-		return m_monitorFrequency;
 	}
 
 	class SwapLegDataInfo : public AbstractLegDataInfo {

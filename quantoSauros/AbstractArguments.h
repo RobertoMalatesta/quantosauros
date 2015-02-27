@@ -13,6 +13,26 @@ namespace quantoSauros {
 	class AbstractArguments {
 	public:
 		AbstractArguments(){};
+		AbstractArguments(quantoSauros::AbstractLegScheduleInfo* scheduleInfo,
+			quantoSauros::AbstractLegAmortizationInfo* amortizationInfo,			
+			quantoSauros::AbstractLegDataInfo* dataInfo,
+			quantoSauros::AbstractLegOptionInfo* optionInfo){
+
+				//상품 기본 정보
+				m_notional = amortizationInfo->getNotional();
+				m_issueDate = scheduleInfo->getIssueDate();
+				m_maturityDate = scheduleInfo->getMaturityDate();
+				m_dcf = scheduleInfo->getDayCounter();				
+				
+				//구간 정보
+				m_periods = scheduleInfo->getPeriods();		
+
+				//행사 정보
+				m_optionType = optionInfo->getOptionType();
+
+				//기타 정보
+				m_monitorFrequency = dataInfo->getMonitorFrequency();				
+		};
 
 		QuantLib::Date getAsOfDate();
 		void setAsOfDate(QuantLib::Date asOfDate);

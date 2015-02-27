@@ -19,18 +19,13 @@ namespace quantoSauros {
 			//상관계수 정보
 			quantoSauros::CorrelationInfo correlationInfo,
 			//기타
-			int simulationNum
-			){
-				//상품 기본 정보				
-				m_notional = amortizationInfo->getNotional();
-				m_issueDate = scheduleInfo->getIssueDate();
-				m_maturityDate = scheduleInfo->getMaturityDate();
-				m_dcf = scheduleInfo->getDayCounter();				
+			int simulationNum) 
+				: AbstractArguments(scheduleInfo, amortizationInfo, dataInfo, optionInfo) {				
+				
+				//상품 기본 정보						
 				m_includePrincipal = amortizationInfo->getIncludePrincipal();
-				
-				//Range 구간 정보, 기준금리 정보
-				m_periods = scheduleInfo->getPeriods();				
-				
+
+				//금리정보
 				for (int i = 0; i <couponInfos.size(); i++){
 					if (couponInfos[i]->getClassName() == "NoteLegSpreadRangeCouponInfo"){
 						//TODO
@@ -56,20 +51,16 @@ namespace quantoSauros {
 					m_rangeLowerRates.push_back(tmpRangeLowerRate);
 				}
 
+				m_accruedCoupon = dataInfo->getAccruedCoupon();
 				m_inCouponRates = couponInfos[0]->getInCouponRates();
 				m_outCouponRates = couponInfos[0]->getOutCouponRates();
 								
-				//행사 정보
-				m_optionType = optionInfo->getOptionType();
-				
 				//시장데이터 정보
 				m_correlationMatrix = correlationInfo.getCorrelationMatrix();
 				m_irInfos = irInfos;
 				m_discountInfo = discountInfo;
 
 				//기타 정보
-				m_monitorFrequency = dataInfo->getMonitorFrequency();
-				m_accruedCoupon = dataInfo->getAccruedCoupon();
 				m_simulationNum = simulationNum;
 		};
 
