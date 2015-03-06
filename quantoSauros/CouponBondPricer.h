@@ -17,10 +17,6 @@ namespace quantoSauros{
 			void init(){
 				dividePeriods();
 
-				//redetermine size of array
-				//m_irNum = m_args.getIRInfos().size();
-				//m_simulationNum = m_args.getSimulationNum();
-				//m_periodNum = m_args.getPeriods().size();			
 				m_timeGridSize = ceil(m_args.getPeriods()[0].getPeriodTenor(m_args.getDayCounter()) 
 					/ ((double)m_args.getMonitorFrequency() / 360));
 

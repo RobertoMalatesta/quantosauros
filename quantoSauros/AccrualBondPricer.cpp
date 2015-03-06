@@ -96,13 +96,13 @@ namespace quantoSauros {
 					m_args.getRangeLowerRates()[periodIndex], 
 					m_args.getInCouponRates()[periodIndex],
 					m_args.getOutCouponRates()[periodIndex],
-					m_args.getFloatCurveTenors(), m_args.getRateTypes(), 
-					m_args.getSwapCouponFrequencies(), 
-					m_floatTermStructure, 
 					&path, 
 					m_IRParams,
 					m_args.getHullWhiteVolatilities(),
-					m_args.getDiscountHullWhiteVolatility());
+					m_args.getDiscountHullWhiteVolatility(),
+					m_floatTermStructure, 
+					m_args.getFloatCurveTenors(), m_args.getRateTypes(), 
+					m_args.getSwapCouponFrequencies());
 
 				//initialize the short rate value
 				for (int i = 0; i < m_irNum; i++){

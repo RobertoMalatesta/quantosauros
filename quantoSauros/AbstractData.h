@@ -15,29 +15,39 @@ namespace quantoSauros{
 			quantoSauros::Period period,
 			QuantLib::Time startTime, QuantLib::TimeGrid timeGrid,
 			QuantLib::DayCounter dcf,
-			//이자율 정보
-			std::vector<double> floatCurveTenors,
-			std::vector<quantoSauros::RateType> rateTypes,
-			std::vector<QuantLib::Frequency> swapCouponFrequencies,
-			std::vector<quantoSauros::InterestRateCurve> floatTermStructures,
-			//헐화이트정보
+			//헐화이트 path
 			sample_type* shortRatePath, 
-			std::vector<quantoSauros::HullWhiteParameters> IRParams,
-			std::vector<QuantLib::HullWhiteVolatility> hullWhiteVolatilities,
-			QuantLib::HullWhiteVolatility discountHullWhiteVolatility){
+			//헐화이트정보
+			std::vector<quantoSauros::HullWhiteParameters> IRParams
+				= std::vector<quantoSauros::HullWhiteParameters>(),
+			std::vector<QuantLib::HullWhiteVolatility> hullWhiteVolatilities
+				= std::vector<QuantLib::HullWhiteVolatility>(),
+			QuantLib::HullWhiteVolatility discountHullWhiteVolatility 
+				= QuantLib::HullWhiteVolatility(),
+			//이자율텀스트럭쳐
+			std::vector<quantoSauros::InterestRateCurve> floatTermStructures 
+				= std::vector<quantoSauros::InterestRateCurve>(),
+			//이자율 정보
+			std::vector<double> floatCurveTenors 
+				= std::vector<double>(),
+			std::vector<quantoSauros::RateType> rateTypes 
+				= std::vector<quantoSauros::RateType>(),
+			std::vector<QuantLib::Frequency> swapCouponFrequencies 
+				= std::vector<QuantLib::Frequency>()){
 
 				m_asOfDate = asOfDate;
 				m_timeGrid = timeGrid;
 				m_period = period;
 				m_maturityDate = maturityDate;
-				m_numOfIR = rateTypes.size();
+				m_numOfIR = floatTermStructures.size();
 				m_referenceRates = std::vector<std::vector<double>>(m_timeGrid.size());
 
 				m_startTime = startTime;
-				m_floatCurveTenors = floatCurveTenors;
-				m_IRParams = IRParams;
+				m_floatCurveTenors = floatCurveTenors;				
 				m_rateTypes = rateTypes;
 				m_swapCouponFrequencies = swapCouponFrequencies;
+
+				m_IRParams = IRParams;
 				m_floatTermStructure = floatTermStructures;
 
 				m_hullWhiteVolatilities = hullWhiteVolatilities;
@@ -147,13 +157,13 @@ namespace quantoSauros{
 		//Hull-White Volatility
 		std::vector<QuantLib::HullWhiteVolatility> m_hullWhiteVolatilities;
 		QuantLib::HullWhiteVolatility m_discountHullWhiteVolatilities;
-
+				
 		//Information of the Reference Rate
 		std::vector<Real> m_floatCurveTenors;
 		std::vector<quantoSauros::RateType> m_rateTypes;
 		std::vector<QuantLib::Frequency> m_swapCouponFrequencies;
-		std::vector<HullWhiteParameters> m_IRParams;
 		std::vector<quantoSauros::InterestRateCurve> m_floatTermStructure;
+		std::vector<HullWhiteParameters> m_IRParams;
 
 		//Time
 		QuantLib::Time m_startTime;

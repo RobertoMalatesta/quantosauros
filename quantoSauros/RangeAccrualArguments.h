@@ -25,7 +25,7 @@ namespace quantoSauros {
 				//상품 기본 정보						
 				m_includePrincipal = amortizationInfo->getIncludePrincipal();
 
-				//금리정보
+				//기준금리정보
 				for (int i = 0; i <couponInfos.size(); i++){
 					if (couponInfos[i]->getClassName() == "NoteLegSpreadRangeCouponInfo"){
 						//TODO

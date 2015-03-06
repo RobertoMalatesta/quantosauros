@@ -14,22 +14,23 @@ namespace quantoSauros{
 				//상품정보
 				std::vector<double> rangeUpperRate, std::vector<double> rangeLowerRate,
 				double inCouponRate, double outCouponRate,
-				//이자율 정보
-				std::vector<double> floatCurveTenors,
-				std::vector<quantoSauros::RateType> rateTypes,
-				std::vector<QuantLib::Frequency> swapCouponFrequencies,
-				std::vector<quantoSauros::InterestRateCurve> floatTermStructures,
 				//헐화이트정보
 				sample_type* shortRatePath, 
 				std::vector<quantoSauros::HullWhiteParameters> IRParams,
 				std::vector<QuantLib::HullWhiteVolatility> hullWhiteVolatilities,
-				QuantLib::HullWhiteVolatility discountHullWhiteVolatility)
+				QuantLib::HullWhiteVolatility discountHullWhiteVolatility,
+				//이자율텀스트럭쳐
+				std::vector<quantoSauros::InterestRateCurve> floatTermStructures,
+				//이자율 정보
+				std::vector<double> floatCurveTenors,
+				std::vector<quantoSauros::RateType> rateTypes,
+				std::vector<QuantLib::Frequency> swapCouponFrequencies)
 					: AbstractData(asOfDate, maturityDate, period, 
-						startTime, timeGrid, dcf,
-						floatCurveTenors, rateTypes, swapCouponFrequencies,
-						floatTermStructures, 
+						startTime, timeGrid, dcf,					
 						shortRatePath, IRParams, 
-						hullWhiteVolatilities, discountHullWhiteVolatility) {
+						hullWhiteVolatilities, discountHullWhiteVolatility,
+						floatTermStructures, 
+						floatCurveTenors, rateTypes, swapCouponFrequencies) {
 
 					m_accrualDt = 0;
 					m_rangeUpperRate = rangeUpperRate;

@@ -8,7 +8,7 @@ namespace quantoSauros {
 			CouponBondArguments(){};
 			CouponBondArguments(quantoSauros::NoteLegScheduleInfo* scheduleInfo,
 				quantoSauros::NoteLegAmortizationInfo* amortizationInfo,
-				std::vector<quantoSauros::NoteLegRangeCouponInfo*> couponInfos,
+				quantoSauros::NoteLegCouponInfo* couponInfo,
 				quantoSauros::NoteLegDataInfo* dataInfo,
 				quantoSauros::NoteLegOptionInfo* optionInfo,
 				//기준금리 정보
@@ -18,59 +18,57 @@ namespace quantoSauros {
 				//상관계수 정보
 				quantoSauros::CorrelationInfo correlationInfo,
 				//기타
-				int simulationNum){
-					//상품 기본 정보				
-					m_notional = amortizationInfo->getNotional();
-					m_issueDate = scheduleInfo->getIssueDate();
-					m_maturityDate = scheduleInfo->getMaturityDate();
-					m_dcf = scheduleInfo->getDayCounter();				
+				int simulationNum)
+					: AbstractArguments(scheduleInfo, amortizationInfo, dataInfo, optionInfo) {
+
+					//상품 기본 정보									
 					m_includePrincipal = amortizationInfo->getIncludePrincipal();
 
-					//Range 구간 정보, 기준금리 정보
-					m_periods = scheduleInfo->getPeriods();				
-
-					for (int i = 0; i <couponInfos.size(); i++){
-						if (couponInfos[i]->getClassName() == "NoteLegSpreadRangeCouponInfo"){
-							//TODO
-						} else if (couponInfos[i]->getClassName() == "NoteLegSpotRangeCouponInfo"){
-							m_rateTypes.push_back(couponInfos[i]->getRateType1());
-							m_floatCurveTenors.push_back(couponInfos[i]->getTenor1());
-							m_swapCouponFrequencies.push_back(couponInfos[i]->getSwapCouponFrequency1());
-						}	
-					}
+					//기준금리정보
+					if (couponInfo->getClassName() == "NoteLegFixedCouponInfo"){
+						m_coupon = couponInfo->getCoupon();
+					} else if (couponInfo->getClassName() == "NoteLegFloatCouponInfo"){
+						m_rateTypes.push_back(couponInfo->getRateType1());
+						m_floatCurveTenors.push_back(couponInfo->getTenor1());
+						m_swapCouponFrequencies.push_back(couponInfo->getSwapCouponFrequency1());						
+					}	
+					m_spread = couponInfo->getSpread();
+					m_leverage = couponInfo->getLeverage();
+					
 					//TODO : CouponINFO 클래스부터 구현 요망
-					/*
-					//range coupon
-					for (int i = 0; i < m_periods.size(); i++){
-						std::vector<double> tmpRangeUpperRate(couponInfos.size());
-						std::vector<double> tmpRangeLowerRate(couponInfos.size());
-						for (int j = 0; j < couponInfos.size(); j++){
-							std::vector<double> tmpUpperBounds = couponInfos[j]->getUpperBounds();
-							std::vector<double> tmpLowerBounds = couponInfos[j]->getLowerBounds();												
-
-							tmpRangeUpperRate[j] = tmpUpperBounds[i];
-							tmpRangeLowerRate[j] = tmpLowerBounds[i];
-						}
-						m_rangeUpperRates.push_back(tmpRangeUpperRate);
-						m_rangeLowerRates.push_back(tmpRangeLowerRate);
-					}
-
-					m_inCouponRates = couponInfos[0]->getInCouponRates();
-					m_outCouponRates = couponInfos[0]->getOutCouponRates();
-					*/
-
-					//행사 정보
-					m_optionType = optionInfo->getOptionType();
-
+										
 					//시장데이터 정보
 					m_correlationMatrix = correlationInfo.getCorrelationMatrix();
 					m_irInfos = irInfos;
 					m_discountInfo = discountInfo;
 
-					//기타 정보
-					m_monitorFrequency = dataInfo->getMonitorFrequency();
-					//m_accruedCoupon = dataInfo->getAccruedCoupon();
+					//기타 정보					
 					m_simulationNum = simulationNum;
 			};
+
+			void setSpread(QuantLib::Rate spread){
+				m_spread = spread;
+			}
+			QuantLib::Rate getSpread(){
+				return m_spread;
+			}
+			void setLeverage(QuantLib::Rate leverage){
+				m_leverage = leverage;
+			}
+			QuantLib::Rate getLeverage(){
+				return m_leverage;
+			}
+			void setCoupon(QuantLib::Rate coupon){
+				m_coupon = coupon;
+			}
+			QuantLib::Rate getCoupon(){
+				return m_coupon;
+			}
+
+		private:
+			QuantLib::Rate m_coupon;
+			QuantLib::Rate m_spread;
+			QuantLib::Real m_leverage;
+
 	};
 }

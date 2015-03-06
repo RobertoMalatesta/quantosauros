@@ -17,6 +17,9 @@ namespace quantoSauros{
 	class AbstractLegCouponInfo : public AbstractLegInfo {
 		public:
 			AbstractLegCouponInfo(){};
+			AbstractLegCouponInfo(quantoSauros::InterestRateCurve referenceRateCurve1){
+				m_referenceRateCurve1 = referenceRateCurve1;
+			};
 			AbstractLegCouponInfo(quantoSauros::RateType rateType1, double tenor1, 
 				QuantLib::Frequency swapCouponFrequency1,
 				quantoSauros::InterestRateCurve referenceRateCurve1){
@@ -26,13 +29,17 @@ namespace quantoSauros{
 					m_referenceRateCurve1 = referenceRateCurve1;
 
 			};
-
+			std::string getClassName(){
+				return m_className;
+			};
 			quantoSauros::RateType getRateType1();
 			double getTenor1();
 			QuantLib::Frequency getSwapCouponFrequency1();
 			quantoSauros::InterestRateCurve getReferenceRateCurve1();	
 
 		protected:
+			//Class 이름
+			std::string m_className;
 			//기초자산1 유형
 			quantoSauros::RateType m_rateType1;
 			//기초자산1 테너
@@ -41,6 +48,7 @@ namespace quantoSauros{
 			QuantLib::Frequency m_swapCouponFrequency1;
 			//기초자산1 금리커브
 			quantoSauros::InterestRateCurve m_referenceRateCurve1;
+			
 	};
 
 	inline quantoSauros::RateType AbstractLegCouponInfo::getRateType1(){

@@ -6,32 +6,15 @@ namespace quantoSauros{
 
 #pragma region NoteLegCouponInfo
 
-	class NoteLegCouponInfo : public AbstractLegCouponInfo {
-		public:
-			NoteLegCouponInfo(){};
-			NoteLegCouponInfo(quantoSauros::RateType rateType1, double tenor1, 
-				QuantLib::Frequency swapCouponFrequency1,
-				quantoSauros::InterestRateCurve referenceRateCurve1)
-					: AbstractLegCouponInfo(rateType1, tenor1, 
-						swapCouponFrequency1, referenceRateCurve1){
-
-			};
-			std::string getClassName(){
-				return m_className;
-			};
-		protected:			
-			std::string m_className;
-	};
-
 	//Range Coupon Info
-	class NoteLegRangeCouponInfo : public NoteLegCouponInfo {
+	class NoteLegRangeCouponInfo : public AbstractLegCouponInfo {
 		public:
 			NoteLegRangeCouponInfo(quantoSauros::RateType rateType1, double tenor1, 
 				QuantLib::Frequency swapCouponFrequency1,
 				quantoSauros::InterestRateCurve referenceRateCurve1,
 				std::vector<QuantLib::Rate> inCouponRates, std::vector<QuantLib::Rate> outCouponRates,
 				std::vector<QuantLib::Rate> upperBounds, std::vector<QuantLib::Rate> lowerBounds)
-					: NoteLegCouponInfo(rateType1, tenor1, 
+					: AbstractLegCouponInfo(rateType1, tenor1, 
 						swapCouponFrequency1, referenceRateCurve1) {
 
 							m_inCouponRates = inCouponRates;
@@ -147,9 +130,72 @@ namespace quantoSauros{
 	}
 #pragma endregion
 	
-	//TODO float Coupon Info
+	//Coupon Bond Info
+	class NoteLegCouponInfo : public AbstractLegCouponInfo {
+		public:
+			NoteLegCouponInfo(){};
+			NoteLegCouponInfo(quantoSauros::InterestRateCurve referenceRateCurve1)
+				: AbstractLegCouponInfo(referenceRateCurve1){
+					//for fixed
+			};
+			NoteLegCouponInfo(quantoSauros::RateType rateType1, double tenor1, 
+				QuantLib::Frequency swapCouponFrequency1,
+				quantoSauros::InterestRateCurve referenceRateCurve1)
+				: AbstractLegCouponInfo(rateType1, tenor1, 
+				swapCouponFrequency1, referenceRateCurve1){
+					//for float
+			};
+			QuantLib::Rate getSpread();
+			QuantLib::Real getLeverage();
+			QuantLib::Rate getCoupon();
 
-	//TODO fixed Coupon Info
+		protected:
+			QuantLib::Rate m_spread;
+			QuantLib::Real m_leverage;
+			QuantLib::Rate m_coupon;
+	};
+
+	//TODO float Coupon Info
+	class NoteLegFloatCouponInfo : public NoteLegCouponInfo {
+		public :
+			NoteLegFloatCouponInfo(
+				quantoSauros::RateType rateType1, double tenor1, 
+				QuantLib::Frequency swapCouponFrequency1,
+				quantoSauros::InterestRateCurve referenceRateCurve1,
+				QuantLib::Rate spread, QuantLib::Real leverage)
+					: NoteLegCouponInfo(rateType1, 
+					tenor1, swapCouponFrequency1, referenceRateCurve1){
+						m_spread = spread;
+						m_leverage = leverage;
+						m_className = "NoteLegFloatCouponInfo";
+			};		
+	};
+
+	class NoteLegFixedCouponInfo : public NoteLegCouponInfo {
+		public :
+			NoteLegFixedCouponInfo(quantoSauros::InterestRateCurve referenceRateCurve1,
+				QuantLib::Rate coupon, QuantLib::Rate spread, QuantLib::Real leverage)
+					: NoteLegCouponInfo(referenceRateCurve1){
+						m_coupon = coupon;
+						m_spread = spread;
+						m_leverage = leverage;
+						m_className = "NoteLegFixedCouponInfo";
+			};
+	};
+
+
+#pragma region inline-functions of NoteLegCouponInfo
+
+	inline QuantLib::Rate NoteLegCouponInfo::getSpread(){
+		return m_spread;
+	}
+	inline QuantLib::Real NoteLegCouponInfo::getLeverage(){
+		return m_leverage;
+	}
+	inline QuantLib::Real NoteLegCouponInfo::getCoupon(){
+		return m_coupon;
+	}
+#pragma endregion
 
 #pragma endregion
 

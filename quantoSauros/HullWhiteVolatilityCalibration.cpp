@@ -79,7 +79,7 @@ namespace quantoSauros {
 			double oldParam = _initialVol;
 			double newParam = 0;
 			setVol(_initialVol);
-			while (loopCnt <= maxloop & abs(error) > tolerance){
+			while (loopCnt <= maxloop && abs(error) > tolerance){
 				setVol(_modelVol + pa);
 				HWSwaptions->setPricingEngine(boost::shared_ptr<PricingEngine>(new
 				JamshidianSwaptionEngine(boost::shared_ptr<HullWhite>(new HullWhite(
