@@ -11,7 +11,6 @@ namespace quantoSauros{
 			AbstractPricer(QuantLib::Date today){
 				m_today = today;
 			};
-		
 			QuantLib::Money getResults(){
 				return m_price;
 			}
@@ -21,6 +20,7 @@ namespace quantoSauros{
 				generatePaths();
 				calculatePrice();
 			};
+		
 		protected:
 			virtual void init(){};
 			virtual void generateSeeds(){
@@ -40,8 +40,7 @@ namespace quantoSauros{
 
 			QuantLib::Date m_today;
 			//seeds
-			std::vector<std::vector<QuantLib::BigNatural>> m_seeds;
-			
+			std::vector<std::vector<QuantLib::BigNatural>> m_seeds;			
 			QuantLib::Money m_price;
 			std::vector<std::vector<QuantLib::Real>> m_payoffs;
 
@@ -65,9 +64,9 @@ namespace quantoSauros{
 			};
 
 		protected:
-			//virtual void generateSeeds();
 
 			quantoSauros::AbstractArguments m_args;
+			//std::vector<std::vector<quantoSauros::AbstractData>> m_data;
 	};
 
 	class AbstractCouponBondPricer : public AbstractPricer {
@@ -85,6 +84,8 @@ namespace quantoSauros{
 
 		protected:
 
+			quantoSauros::AbstractArguments m_args;
+			//std::vector<std::vector<quantoSauros::AbstractData>> m_data;
 	};
 
 	class AbstractAveragePricer : public AbstractPricer {

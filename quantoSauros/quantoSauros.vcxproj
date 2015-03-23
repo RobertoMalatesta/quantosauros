@@ -134,6 +134,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AccrualBondPricer.cpp" />
+    <ClCompile Include="CouponBondPricer.cpp" />
     <ClCompile Include="HullWhiteVolatilityCalibration.cpp" />
     <ClCompile Include="InterestRate.cpp" />
     <ClCompile Include="InterestRateCurve.cpp" />

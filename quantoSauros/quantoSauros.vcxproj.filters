@@ -289,6 +289,9 @@
     <ClCompile Include="HullWhiteVolatilityCalibration.cpp">
       <Filter>Source Files\Core\derivatives\Method</Filter>
     </ClCompile>
+    <ClCompile Include="CouponBondPricer.cpp">
+      <Filter>Source Files\Core\derivatives\Pricers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="quantoSauros.rc">
