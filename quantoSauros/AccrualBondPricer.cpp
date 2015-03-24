@@ -89,6 +89,9 @@ namespace quantoSauros {
 				MultiPathGenerator<rsg_type> generator(process, timeGrid, rsg, false);
 				sample_type path = generator.next();
 
+				m_data.setData(simIndex, periodIndex, timeGrid, period, startTenor, &path);
+
+				/*
 				m_data[simIndex][periodIndex] = RangeAccrualData(
 					m_today, m_args.getMaturityDate(), period, 
 					startTenor, timeGrid, m_args.getDayCounter(),
@@ -103,6 +106,7 @@ namespace quantoSauros {
 					m_floatTermStructure, 
 					m_args.getFloatCurveTenors(), m_args.getRateTypes(), 
 					m_args.getSwapCouponFrequencies());
+					*/
 
 				//initialize the short rate value
 				for (int i = 0; i < m_irNum; i++){
@@ -131,8 +135,12 @@ namespace quantoSauros {
 			int numOfCandidate = 0;
 			for (int simIndex = 0; simIndex < m_simulationNum; simIndex++){				
 				double previousPayoff = m_payoffs[periodIndex + 1][simIndex];
-				double coupon = m_data[simIndex][periodIndex].getPayoffs();
-				double df = m_data[simIndex][periodIndex].getDiscountFactor();
+				//double coupon = m_data[simIndex][periodIndex].getPayoffs();
+				double coupon = m_data.getPayoffs(simIndex, periodIndex);
+
+				//double df = m_data[simIndex][periodIndex].getDiscountFactor();
+				double df = m_data.getDiscountFactor(simIndex, periodIndex);
+
 				if (hasExercise){
 					//TODO : Select LSMC Candidates
 					//if (){}
@@ -157,7 +165,8 @@ namespace quantoSauros {
 						quantoSauros::LSMCData lsmcData;
 						std::vector<double> xData;
 
-						lsmcData.values = m_data[simIndex][periodIndex].getLSMCData(0);
+						//lsmcData.values = m_data[simIndex][periodIndex].getLSMCData(0);
+						lsmcData.values = m_data.getLSMCData(simIndex, periodIndex, 0);
 						lsmcData.cumulatedCashFlows = m_payoffs[periodIndex][simIndex];
 						lsmcData.isVaild = true;	
 						lsmcData.controlValue = 0;

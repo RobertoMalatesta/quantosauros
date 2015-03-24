@@ -33,10 +33,17 @@ namespace quantoSauros{
 					m_args.getDiscountInfo().getInterestRateCurve());
 
 				//data class
-				m_data = std::vector<std::vector<quantoSauros::CouponBondData>>(m_simulationNum);
-				for (int i = 0; i < m_simulationNum; i++){
-					m_data[i] = std::vector<quantoSauros::CouponBondData>(m_periodNum);
-				}		
+				m_data = CouponBondData(m_args.getAsOfDate(), m_args.getMaturityDate(),
+					m_args.getDayCounter(), 
+					m_args.getSpread(), m_args.getLeverage(),
+					m_args.getFloatCurveTenors(), m_args.getRateTypes(),
+					m_args.getSwapCouponFrequencies(),
+					m_floatTermStructure, 
+					m_IRParams,
+					m_args.getHullWhiteVolatilities(),
+					m_args.getDiscountHullWhiteVolatility(),
+					m_simulationNum, m_periodNum);
+
 			}
 			virtual void dividePeriods();
 			virtual void generatePaths();
@@ -50,6 +57,6 @@ namespace quantoSauros{
 			std::vector<HullWhiteParameters> m_IRParams;
 			HullWhiteParameters m_discountParams;
 
-			std::vector<std::vector<quantoSauros::CouponBondData>> m_data;
+			quantoSauros::CouponBondData m_data;
 	};
 }

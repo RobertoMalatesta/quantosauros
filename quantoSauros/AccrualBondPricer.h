@@ -4,6 +4,7 @@
 #include "RangeAccrualArguments.h";
 #include "LongstaffSchwartz.h";
 #include "RangeAccrualData.h"
+//#include "NewAbstractData.h";
 
 namespace quantoSauros{
 	class RangeAccrualPricer : public AbstractAccrualPricer {
@@ -13,6 +14,7 @@ namespace quantoSauros{
 					args.getIRInfos().size(), args.getPeriods().size()){
 
 						m_args = args;
+						
 			};
 
 		protected:
@@ -35,10 +37,24 @@ namespace quantoSauros{
 					m_args.getDiscountInfo().getInterestRateCurve());
 
 				//data class
+				m_data = RangeAccrualData(m_args.getAsOfDate(), m_args.getMaturityDate(),
+					m_args.getDayCounter(), 
+					m_args.getRangeUpperRates(), m_args.getRangeLowerRates(),
+					m_args.getInCouponRates(), m_args.getOutCouponRates(),
+					m_args.getFloatCurveTenors(), m_args.getRateTypes(),
+					m_args.getSwapCouponFrequencies(),
+					m_floatTermStructure, 
+					m_IRParams,
+					m_args.getHullWhiteVolatilities(),
+					m_args.getDiscountHullWhiteVolatility(),
+					m_simulationNum, m_periodNum);
+
+				/*
 				m_data = std::vector<std::vector<quantoSauros::RangeAccrualData>>(m_simulationNum);
 				for (int i = 0; i < m_simulationNum; i++){
 					m_data[i] = std::vector<quantoSauros::RangeAccrualData>(m_periodNum);
-				}		
+				}
+				*/
 			}
 			virtual void dividePeriods();
 			virtual void generatePaths();
@@ -53,7 +69,9 @@ namespace quantoSauros{
 			std::vector<HullWhiteParameters> m_IRParams;
 			HullWhiteParameters m_discountParams;
 
-			std::vector<std::vector<quantoSauros::RangeAccrualData>> m_data;			
+			//std::vector<std::vector<quantoSauros::RangeAccrualData>> m_data;	
+
+			quantoSauros::RangeAccrualData m_data;
 	};
 
 	class DualRangeAccrualPricer : public AbstractAccrualPricer {

@@ -1,7 +1,9 @@
 #pragma once
 #include <ql/quantlib.hpp>
-#include "InterestRate.h"
+#include "InterestRate.h";
+#include "InterestRateCurve.h";
 #include "HullWhiteParameters.h";
+#include "Period.h";
 
 namespace quantoSauros{
 
@@ -9,176 +11,84 @@ namespace quantoSauros{
 	typedef QuantLib::MultiPathGenerator<rsg_type>::sample_type sample_type;
 
 	class AbstractData {
-	public:	
+	public:
 		AbstractData(){};
-		AbstractData(QuantLib::Date asOfDate, QuantLib::Date maturityDate,
-			quantoSauros::Period period,
-			QuantLib::Time startTime, QuantLib::TimeGrid timeGrid,
+		AbstractData(QuantLib::Date asOfDate, 
+			QuantLib::Date maturityDate,
 			QuantLib::DayCounter dcf,
-			//헐화이트 path
-			sample_type* shortRatePath, 
-			//헐화이트정보
-			std::vector<quantoSauros::HullWhiteParameters> IRParams
-				= std::vector<quantoSauros::HullWhiteParameters>(),
-			std::vector<QuantLib::HullWhiteVolatility> hullWhiteVolatilities
-				= std::vector<QuantLib::HullWhiteVolatility>(),
-			QuantLib::HullWhiteVolatility discountHullWhiteVolatility 
-				= QuantLib::HullWhiteVolatility(),
-			//이자율텀스트럭쳐
-			std::vector<quantoSauros::InterestRateCurve> floatTermStructures 
-				= std::vector<quantoSauros::InterestRateCurve>(),
-			//이자율 정보
-			std::vector<double> floatCurveTenors 
-				= std::vector<double>(),
-			std::vector<quantoSauros::RateType> rateTypes 
-				= std::vector<quantoSauros::RateType>(),
-			std::vector<QuantLib::Frequency> swapCouponFrequencies 
-				= std::vector<QuantLib::Frequency>()){
+			int simNum, int periodNum)
+			: m_asOfDate(asOfDate), m_maturityDate(maturityDate), m_dcf(dcf) {
 
-				m_asOfDate = asOfDate;
-				m_timeGrid = timeGrid;
-				m_period = period;
-				m_maturityDate = maturityDate;
-				m_numOfIR = floatTermStructures.size();
-				m_referenceRates = std::vector<std::vector<double>>(m_timeGrid.size());
-
-				m_startTime = startTime;
-				m_floatCurveTenors = floatCurveTenors;				
-				m_rateTypes = rateTypes;
-				m_swapCouponFrequencies = swapCouponFrequencies;
-
-				m_IRParams = IRParams;
-				m_floatTermStructure = floatTermStructures;
-
-				m_hullWhiteVolatilities = hullWhiteVolatilities;
-				m_discountHullWhiteVolatilities = discountHullWhiteVolatility;
-
-				m_cumulatedDF = 1;
-				m_dt = m_timeGrid.dt(0);		
-				m_dcf = dcf;
-				savePathsInfo(shortRatePath);				
-		};	
-		virtual double getReferenceRate(int IRIndex, int timeIndex){
-			//TODO
-			if (timeIndex >= m_timeGrid.size()){
-				return 0;
-			}
-			if (IRIndex >= m_referenceRates.size()){
-				return 0;
-			}
-
-			return m_referenceRates[m_timeGrid.size() - 2][IRIndex];
+				m_paths.resize(simNum);
+				m_timeGrids.resize(simNum);
+				m_startTimes.resize(simNum);
+				m_periods.resize(simNum);
+				for (int i = 0; i < simNum; i++){
+					m_paths[i].resize(periodNum);
+					m_timeGrids[i].resize(periodNum);
+					m_startTimes[i].resize(periodNum);
+					m_periods[i].resize(periodNum);
+				}					
 		};
-		virtual double getPayoffs(){ return 0; };
-		virtual double getDiscountFactor(){ return 0; };
 
-		virtual std::vector<double> getLSMCData(int IRIndex){
-			std::vector<double> data;
-
-			data.push_back(1);
-			data.push_back(m_referenceRates[m_timeGrid.size() - 2][IRIndex]);
-
-			QuantLib::Date swapStartDate = m_period.getEndDate();
-			QuantLib::Date swapEndDate = m_maturityDate;
-			if (swapStartDate != swapEndDate){
-				double coterminalSwapRate = m_floatTermStructure[IRIndex].
-					getForwardSwapRate(swapStartDate, swapEndDate);
-				data.push_back(coterminalSwapRate);
-			}			
-
+		virtual double getReferenceRate(int IRIndex, int simIndex, int periodIndex){
+			return 0;
+		}
+		virtual double getPayoffs(int simIndex, int periodIndex){
+			return 0;
+		}
+		virtual double getDiscountFactor(int simIndex, int periodIndex){
+			return 0;
+		}
+		virtual std::vector<double> getLSMCData(int simIndex, int periodIndex, int IRIndex){
+			std::vector<double> data;			
 			return data;
+		}
+
+		// 변하는 데이터
+		void setData(int simIndex, int periodIndex, 
+			QuantLib::TimeGrid timeGrid, quantoSauros::Period period,
+			QuantLib::Time startTime, sample_type* shortRatePath){
+
+				setTimeGrid(simIndex, periodIndex, timeGrid);
+				setPath(simIndex, periodIndex, shortRatePath);
+				setStartTime(simIndex, periodIndex, startTime);
+				setPeriod(simIndex, periodIndex, period);
+
+				init(simIndex, periodIndex);
+		}
+		void setTimeGrid(int simIndex, int periodIndex, QuantLib::TimeGrid timeGrid){
+			m_timeGrids[simIndex][periodIndex] = timeGrid;
+		};
+		void setPath(int simIndex, int periodIndex, sample_type* shortRatePath){
+			m_paths[simIndex][periodIndex] = shortRatePath;
+		};
+		void setStartTime(int simIndex, int periodIndex, QuantLib::Time startTime){
+			m_startTimes[simIndex][periodIndex] = startTime;
+		};
+		void setPeriod(int simIndex, int periodIndex, quantoSauros::Period period){
+			m_periods[simIndex][periodIndex] = period;
 		};
 
 	protected:
-		virtual void init(){
-			calcReferenceRates();
-			calculateDiscountFactor();
-			calculatePayoff();
-		}
-		virtual void savePathsInfo(sample_type* shortRatePath){
-			m_shortRatePath = shortRatePath;
-		}
-		virtual void calcReferenceRates(){
-			for (Size timeIndex = 0; timeIndex < m_timeGrid.size() - 1; timeIndex++){
-				//4.1. Calculate the reference Rate
-				QuantLib::Time start = m_timeGrid[timeIndex] + m_startTime;
-				std::vector<double> referenceRates(m_numOfIR);
-				for (int i = 0; i < m_numOfIR; i++){							
-					double end = 0;
-					double vol = 0;
-					double bondPrice = 0;
-					double bondPriceSum = 0;
-					QuantLib::Time tenor = m_floatCurveTenors[i];
-
-					quantoSauros::RateType type = m_rateTypes[i];
-					if (type == quantoSauros::RateType::DepositRate){								
-						end = start + tenor;						
-						vol = m_hullWhiteVolatilities[i].vol()(start);;//m_IRParams[i].getVolatility1F();
-						QuantLib::HullWhite hullWhite(
-							Handle<YieldTermStructure>(m_floatTermStructure[i].getInterestRateCurve()), 
-							m_IRParams[i].getMeanReversion1F(), vol);
-						bondPrice = hullWhite.discountBond(start, end, 
-							m_shortRatePath->value[i][timeIndex]);
-						referenceRates[i] = - log(bondPrice) / tenor;
-					} else if (type == quantoSauros::RateType::SwapRate){								
-						//QuantLib::Frequency swapCouponFrequency = m_swapCouponFrequencies[i];
-						double swapTenor = 1 / m_swapCouponFrequencies[i];
-						int swapRateNum = tenor / swapTenor;
-						for (int j = 0; j < swapRateNum; j++){
-							double tmpTenor = swapTenor * (j + 1);
-							end = start + tmpTenor;
-							vol = m_hullWhiteVolatilities[i].vol()(start);//m_IRParams[i].getVolatility1F();
-							QuantLib::HullWhite hullWhite(
-								Handle<YieldTermStructure>(m_floatTermStructure[i].getInterestRateCurve()), 
-								m_IRParams[i].getMeanReversion1F(), vol);
-							bondPrice = hullWhite.discountBond(start, end, 
-								m_shortRatePath->value[i][timeIndex]);
-							bondPriceSum += bondPrice * swapTenor;
-						}								
-						referenceRates[i] = (1 - bondPrice) / bondPriceSum;
-					}							
-				}
-				m_referenceRates[timeIndex] = referenceRates;
-			}
-		}
-		virtual void calculateDiscountFactor(){
-			for (Size timeIndex = 0; timeIndex < m_timeGrid.size() - 1; timeIndex++){
-
-				//double shortRate = m_shortRatePath->value[0][timeIndex];
-				double dfRate = m_shortRatePath->value[m_numOfIR][timeIndex];
-				m_cumulatedDF *= exp(- dfRate * m_timeGrid.dt(timeIndex));
-			}
-		}
-		virtual void calculatePayoff() {};
-
-		//Hull-White Path
-		sample_type* m_shortRatePath;
-
-		//Hull-White Volatility
-		std::vector<QuantLib::HullWhiteVolatility> m_hullWhiteVolatilities;
-		QuantLib::HullWhiteVolatility m_discountHullWhiteVolatilities;
-				
-		//Information of the Reference Rate
-		std::vector<Real> m_floatCurveTenors;
-		std::vector<quantoSauros::RateType> m_rateTypes;
-		std::vector<QuantLib::Frequency> m_swapCouponFrequencies;
-		std::vector<quantoSauros::InterestRateCurve> m_floatTermStructure;
-		std::vector<HullWhiteParameters> m_IRParams;
-
-		//Time
-		QuantLib::Time m_startTime;
+		virtual void calcReferenceRates(int simIndex, int periodIndex){};
+		virtual void calculateDiscountFactor(int simIndex, int periodIndex){};
+		virtual void calculatePayoff(int simIndex, int periodIndex) {};
+		virtual void init(int simIndex, int periodIndex){
+			calcReferenceRates(simIndex, periodIndex);
+			calculateDiscountFactor(simIndex, periodIndex);
+			calculatePayoff(simIndex, periodIndex);
+		};
 		QuantLib::Date m_asOfDate;
-		QuantLib::TimeGrid m_timeGrid;
-		double m_dt;
 		QuantLib::Date m_maturityDate;
-		quantoSauros::Period m_period;
 		QuantLib::DayCounter m_dcf;
 
-		//Generated Results
-		std::vector<std::vector<Rate>> m_referenceRates;		
-		double m_cumulatedDF;
+		std::vector<std::vector<sample_type*>> m_paths;
+		std::vector<std::vector<QuantLib::TimeGrid>> m_timeGrids;
+		std::vector<std::vector<QuantLib::Time>> m_startTimes;
+		std::vector<std::vector<quantoSauros::Period>> m_periods;
 
-		//etc
-		int m_numOfIR;
+	private:
+
 	};
 }
